@@ -1,7 +1,7 @@
 # Read a Bend-owned X11 window's client pixels into an affine RGB array.
 # Apache-2.0. Derived from bendlang/bend b3a0a2c58024681913a75fe4f303530e4527f3a4.
 # Native bridge validated on Bend 2.0.39, Linux/X11. Other backends return ENOTSUP.
-# Import bend-window-capture@0.1.0.0/capture.bend as C, then call C.Window.capture(window).
+# Import bend-window-capture@0.1.0.1/capture.bend as C, then call C.Window.capture(window).
 # The same affine owner returns outside Result on success and failure.
 # Capture dimensions are the actual client dimensions at readback, not the requested size.
 # Pixels are 0x00RRGGBB, top-left row-major. width * height is the logical length.

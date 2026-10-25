@@ -25,7 +25,14 @@ The example draws four colored quadrants, captures them, closes the window, and 
 
 ## Use the library
 
-Keep `capture.bend`, `capture.c`, and `capture.js` together. Import the local module from your application:
+Import the published [BendHub package](https://hub.bend-lang.com/n/bend-window-capture):
+
+```python
+import Base
+import bend-window-capture@0.1.0.1/capture.bend as C
+```
+
+For a local copy, keep `capture.bend`, `capture.c`, and `capture.js` together and import the module from your application:
 
 ```python
 import Base
