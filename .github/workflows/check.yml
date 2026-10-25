@@ -11,15 +11,15 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y clang libx11-dev xvfb xauth
       - name: Install Bend
         run: |
-          archive=bend-2.0.37-linux-x64.tar.gz
-          curl -fsSL -o "$RUNNER_TEMP/$archive" "https://github.com/bendlang/bend/releases/download/v2.0.37/$archive"
-          echo "84c32465a39bc9ac315eade23f470cb8db03153dc860f89564fcfec153c3e445  $RUNNER_TEMP/$archive" | sha256sum -c -
+          archive=bend-2.0.39-linux-x64.tar.gz
+          curl -fsSL -o "$RUNNER_TEMP/$archive" "https://github.com/bendlang/bend/releases/download/v2.0.39/$archive"
+          echo "6cf462fd8f70b094a4950ebb709a9c4ffd8f1d1189d9cedf1fd63cd5d041c7ab  $RUNNER_TEMP/$archive" | sha256sum -c -
           mkdir -p "$HOME/.bend"
-          tar -xzf "$RUNNER_TEMP/$archive" -C "$HOME/.bend"
+          tar -xzf "$RUNNER_TEMP/$archive" -C "$HOME/.bend" --strip-components=1
           echo "$HOME/.bend/bin" >> "$GITHUB_PATH"
       - name: Check compiler version
         run: |
           bend version
-          bend version | grep -Eq '(^|[^0-9])2\.0\.37([^0-9]|$)'
+          bend version | grep -Eq '(^|[^0-9])2\.0\.39([^0-9]|$)'
       - name: Check API contract and native capture
         run: xvfb-run -a ./scripts/check.sh

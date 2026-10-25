@@ -155,7 +155,7 @@ Term window_capture_run(Env e, Term* f, IoWork* work) {
   u64 out = heap_alloc(e, cls_fit(3));
   e.mem[out] = io_seal(e, (u32)attrs.width, CID(Capture));
   e.mem[out + 1] = io_seal(e, (u32)attrs.height, CID(Capture));
-  e.mem[out + 2] = io_seal(e, term_buf(depth, pixels), CID(Capture));
+  e.mem[out + 2] = io_seal(e, term_blk(false, depth, pixels), CID(Capture));
   return io_tup(e, f[0], io_done(e, term_ctr(CID(Capture), out)));
 #else
   return io_tup(e, f[0], io_fail(e, ENOTSUP,
