@@ -2,12 +2,12 @@
 
 Capture a Bend-owned X11 window's client pixels into an affine RGB array.
 
-Validated with Bend 2.0.37 on Linux with X11. Other native backends and JavaScript return `ENOTSUP`.
+Validated with Bend 2.0.39 on Linux with X11. Other native backends and JavaScript return `ENOTSUP`.
 The bridge uses Bend runtime internals, so revalidate it after compiler updates.
 
 ## Run the example
 
-Install [Bend](https://bend-lang.com), Clang, and the X11 development headers.
+Install [Bend 2.0.39](https://github.com/bendlang/bend/releases/tag/v2.0.39), Clang, and the X11 development headers.
 On Debian or Ubuntu, install the native dependencies with `sudo apt-get install clang libx11-dev`.
 Run this from a graphical X11 session with `DISPLAY` set:
 
