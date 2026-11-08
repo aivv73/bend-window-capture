@@ -2,12 +2,14 @@
 
 Capture a Bend-owned X11 window's client pixels into an affine RGB array.
 
-Validated with Bend 2.0.39 on Linux with X11. Other native backends and JavaScript return `ENOTSUP`.
+Source code and issues: [aivv73/bend-window-capture on GitHub](https://github.com/aivv73/bend-window-capture).
+
+Validated with Bend 2.0.40 on Linux with X11. Other native backends and JavaScript return `ENOTSUP`.
 The bridge uses Bend runtime internals, so revalidate it after compiler updates.
 
 ## Run the example
 
-Install [Bend 2.0.39](https://github.com/bendlang/bend/releases/tag/v2.0.39), Clang, and the X11 development headers.
+Install [Bend 2.0.40](https://github.com/bendlang/bend/releases/tag/v2.0.40), Clang, and the X11 development headers.
 On Debian or Ubuntu, install the native dependencies with `sudo apt-get install clang libx11-dev`.
 Run this from a graphical X11 session with `DISPLAY` set:
 
@@ -29,7 +31,7 @@ Import the published [BendHub package](https://hub.bend-lang.com/n/bend-window-c
 
 ```python
 import Base
-import bend-window-capture@0.1.0.1/capture.bend as C
+import bend-window-capture@0.1.0.3/capture.bend as C
 ```
 
 For a local copy, keep `capture.bend`, `capture.c`, and `capture.js` together and import the module from your application:
