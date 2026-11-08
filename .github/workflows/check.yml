@@ -10,9 +10,11 @@ jobs:
       - name: Install native dependencies
         run: sudo apt-get update && sudo apt-get install -y clang libx11-dev xvfb xauth
       - name: Install Bend
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           archive=bend-2.0.40-linux-x64.tar.gz
-          curl -fsSL -o "$RUNNER_TEMP/$archive" "https://github.com/bendlang/bend/releases/download/v2.0.40/$archive"
+          gh release download v2.0.40 --repo bendlang/bend --pattern "$archive" --dir "$RUNNER_TEMP"
           echo "c9ff8d67bd903fb6ad9a26b43d8a62c01021de82a44d55ce4a3dcd4732113d6b  $RUNNER_TEMP/$archive" | sha256sum -c -
           mkdir -p "$HOME/.bend"
           tar -xzf "$RUNNER_TEMP/$archive" -C "$HOME/.bend" --strip-components=1
