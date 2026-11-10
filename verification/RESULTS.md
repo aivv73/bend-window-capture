@@ -58,4 +58,4 @@ The models assume serialized effects, valid Bend-owned handles, successful runti
 
 No current-code invariant violation was found. This formal suite uses controlled X11 boundaries. The separate [live verification skill](../.agents/skills/verify-bend-window-capture/SKILL.md) now verifies successful native capture, resized-client padding, recoverable failure ownership, and queued close-event preservation on private Xvfb servers. Physical desktop and window-manager behavior remain outside that headless run.
 
-Source correspondence was confirmed at `86394a5b7762a7188d32e7c9e8fbb85baa42dbde`. Covered-file fingerprints are in [source-map.json](source-map.json). Use `/maintain-formal-verification-skill` after later changes, and advance the sync commit only after confirming that each model still describes its source.
+Per-subsystem source commits and covered-file fingerprints are in [source-map.json](source-map.json). Use `/maintain-formal-verification-skill` after later changes, and advance the sync commit only after confirming that each model still describes its source.
