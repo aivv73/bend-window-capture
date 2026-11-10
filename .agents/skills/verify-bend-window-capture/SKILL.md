@@ -86,13 +86,13 @@ The verified environment is a headless Xvfb server without a window manager. The
 
 ## Cleanup
 
-Every drive stops its own consumer and Xvfb server in `finally` and removes that drive's authentication and scratch state. At the end of the run, including after failures, execute:
+Every drive stops its own consumer and Xvfb server in `finally` and removes that drive's authentication and scratch state. Shutdown gives the process group up to two seconds to exit before escalation. A retained X11 lock or socket makes the drive fail and is recorded in `display-cleanup.json`. At the end of the run, including after failures, execute:
 
 ```sh
 "$bwc_control" cleanup --run-dir "$bwc_run_dir"
 ```
 
-Require `CLEAN`. Cleanup uses stored process identities, never process-name matching. It removes only the marked private build directory and owned processes. It retains the evidence directory and writes `cleanup.json` with SHA-256 hashes for the surviving artifacts. Confirm `scratch_removed: true`, `evidence_preserved: true`, and the feature's `result.json` and transcript still exist. Cleanup is idempotent.
+Require `CLEAN`. Cleanup uses stored process identities, never process-name matching. It removes only the marked private build directory and owned processes. After owned writers finish, it snapshots retained evidence, removes scratch, and compares the resulting snapshot. Scratch is excluded even when nested inside the run directory. It writes `cleanup.json` with the baseline hashes and the actual comparison result. Confirm `scratch_removed: true`, `evidence_preserved: true`, and the feature's `result.json` and transcript still exist. Cleanup is idempotent.
 
 After full Cleanup, that run has no prepared binaries. Keep its evidence and launch into a new directory before any later drive.
 

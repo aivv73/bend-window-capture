@@ -3,6 +3,7 @@
 These models check the protocols in the existing code. They do not change product behavior.
 Run `python3 verification/verify.py all` from the repository root.
 Add `--mutations` to check the broken variants as well.
+Run `python3 -B -m unittest discover -s tests -v` for download, shutdown, evidence-retention, and sync-baseline regressions. CI runs those checks alongside the live X11 integration example.
 
 The runner requires Python 3, Node, Clang, X11 development headers, Bend 2.0.40, and Java 11 or newer.
 It downloads TLC 1.7.4 into the user cache and verifies its pinned SHA-256.
@@ -54,6 +55,6 @@ Pixel arithmetic is exercised by source tests. It is not a TLA+ proof of the C f
 A missing handler creates a dead end in the registration model. Bend's real handling of a missing effect is outside that model; a model deadlock is not a claim that the application hangs. The existing Bend proof covers structural ownership and remains a separate check.
 
 `source-map.json` records covered file hashes and the source commit. The runner refuses a normal pass when those files drift.
-After reviewing the code, model, and harness together, use `--sync-reviewed` to run checks and advance the selected coverage records and skill commit lines.
+After reviewing the code, model, and harness together, commit changes to covered source files before using `--sync-reviewed`. The command requires those files to match HEAD, pins that commit, and refuses metadata updates if source changes during verification. Passing checks then advance the selected coverage records and skill commit lines.
 Never refresh a fingerprint merely to silence drift. Intended behavior changes require corresponding model changes. An unexpected counterexample remains a finding.
 Read TLA+ results with `/statechart`. Use `/maintain-formal-verification-skill` when later changes need a correspondence audit.

@@ -3,6 +3,7 @@ import hashlib
 import os
 from pathlib import Path
 import shutil
+import tempfile
 import urllib.request
 
 CACHE = Path(os.environ.get("XDG_CACHE_HOME", Path.home() / ".cache")) / "bend-window-capture-verification"
@@ -14,10 +15,17 @@ def resolve():
     CACHE.mkdir(parents=True, exist_ok=True)
     jar = Path(os.environ.get("TLA2TOOLS", CACHE / "tla2tools-1.7.4.jar"))
     if not jar.exists():
-        data = urllib.request.urlopen(TLC_URL, timeout=60).read()
+        with urllib.request.urlopen(TLC_URL, timeout=60) as response:
+            data = response.read()
         if hashlib.sha256(data).hexdigest() != TLC_SHA256:
             raise RuntimeError("TLC download checksum mismatch")
-        jar.write_bytes(data)
+        with tempfile.NamedTemporaryFile(dir=jar.parent, prefix=f".{jar.name}.", delete=False) as download:
+            partial = Path(download.name)
+        try:
+            partial.write_bytes(data)
+            os.replace(partial, jar)
+        finally:
+            partial.unlink(missing_ok=True)
     if hashlib.sha256(jar.read_bytes()).hexdigest() != TLC_SHA256:
         raise RuntimeError("TLA2TOOLS must be the pinned TLC 1.7.4 jar")
     java = os.environ.get("JAVA") or shutil.which("java")

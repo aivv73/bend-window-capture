@@ -7,17 +7,17 @@ type Mode is Data:
   Recover{}
   Events{}
 
-def continued(ok: Bool, next: IO(Unit)) -> IO(Unit):
+def continued(ok: Bool, received: String, next: IO(Unit)) -> IO(Unit):
   match ok:
     case True{}:
       next
     case False{}:
-      IO.die(Unit, 1, "Expected one g byte on the verification terminal")
+      IO.die(Unit, 1, "Expected one g byte on the verification terminal; received " ++ String.quote(received))
 
 def gate_result(next: IO(Unit), result: Result<&1, &1, U32 & String, String>) -> IO(Unit):
   match result:
-    case Done{value}:
-      continued(String.eq(value, "g"), next)
+    case Done{+value}:
+      continued(String.eq(value, "g"), value, next)
     case Fail{(code, message)}:
       IO.die(Unit, code, message)
 

@@ -83,6 +83,15 @@ def main():
     results = {}
     skill_updates = {}
     selected = AREAS if args.area == "all" else {args.area: AREAS[args.area]}
+    reviewed_files = {}
+    if args.sync_reviewed:
+        sync_commit = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
+        for area in selected:
+            reviewed_files[area] = {path: digest(ROOT / path) for path in record[area]["files"]}
+            for path, sha in reviewed_files[area].items():
+                committed = subprocess.run(["git", "show", f"{sync_commit}:{path}"], cwd=ROOT, capture_output=True)
+                if committed.returncode or hashlib.sha256(committed.stdout).hexdigest() != sha:
+                    raise SystemExit(f"Cannot sync {area}: commit the reviewed covered source first ({path} differs from HEAD).")
     for area, (name, mutations) in selected.items():
         coverage = record[area]
         drift = [path for path, sha in coverage["files"].items() if digest(ROOT / path) != sha]
@@ -122,14 +131,17 @@ def main():
         print(f"PASS {area}: {states} model states, {cases} source cases, {len(killed)} mutations caught", flush=True)
         if args.sync_reviewed:
             old_commit = coverage["sync_commit"]
-            coverage["sync_commit"] = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
-            coverage["files"] = {path: digest(ROOT / path) for path in coverage["files"]}
+            coverage["sync_commit"] = sync_commit
+            coverage["files"] = reviewed_files[area]
             results[area]["sync_commit"] = coverage["sync_commit"]
             skill = ROOT / f".agents/skills/verify-{area}/SKILL.md"
             skill_updates[skill] = source_checks.replace_once(skill.read_text(),
                 f"Last confirmed source commit: `{old_commit}`.",
                 f"Last confirmed source commit: `{coverage['sync_commit']}`.")
     if args.sync_reviewed:
+        for area, files in reviewed_files.items():
+            if any(digest(ROOT / path) != sha for path, sha in files.items()):
+                raise SystemExit(f"Covered source changed during verification: {area}; rerun before syncing.")
         for skill, content in skill_updates.items():
             skill.write_text(content)
         record_path.write_text(json.dumps(record, indent=2) + "\n")

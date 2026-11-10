@@ -54,13 +54,38 @@ def stop(record):
     pid = record["pid"]
     current = token(pid)
     require(current is None or current == record["start"], f"PID {pid} was reused; refusing to signal it")
-    for signum in (signal.SIGTERM, signal.SIGKILL):
-        try:
-            os.killpg(pid, signum)
-        except ProcessLookupError:
+    try:
+        os.killpg(pid, signal.SIGTERM)
+    except ProcessLookupError:
+        return
+    deadline = time.monotonic() + 2
+    while group_running(pid):
+        if time.monotonic() >= deadline:
+            current = token(pid)
+            require(current is None or current == record["start"], f"PID {pid} was reused; refusing to signal it")
+            try:
+                os.killpg(pid, signal.SIGKILL)
+            except ProcessLookupError:
+                return
+            kill_deadline = time.monotonic() + 1
+            while group_running(pid) and time.monotonic() < kill_deadline:
+                time.sleep(0.02)
+            require(not group_running(pid), f"Owned process group {pid} did not stop")
             return
-        if signum == signal.SIGTERM:
-            time.sleep(0.05)
+        time.sleep(0.02)
+
+
+def group_running(pgid):
+    for process in Path("/proc").iterdir():
+        if not process.name.isdecimal():
+            continue
+        try:
+            fields = (process / "stat").read_text().rsplit(")", 1)[1].split()
+        except (FileNotFoundError, ProcessLookupError, PermissionError):
+            continue
+        if int(fields[2]) == pgid and fields[0] not in {"Z", "X"}:
+            return True
+    return False
 
 
 class Run:
@@ -160,7 +185,8 @@ def launch(directory):
         run.command(["bend", "PROOF.bend"], directory, "proof")
         sources = scratch / "sources"
         binaries = scratch / "bin"
-        sources.mkdir(); binaries.mkdir()
+        sources.mkdir()
+        binaries.mkdir()
         for file in (SKILL / "assets").glob("*.bend"):
             shutil.copy2(file, sources / file.name)
         for name in ("capture.bend", "capture.c", "capture.js"):
@@ -251,9 +277,12 @@ def display(run, evidence):
         log.close()
         if session.exists():
             shutil.rmtree(session)
-        save(evidence / "display-cleanup.json", {"server_exited": server is None or server.poll() is not None,
+        result = {"server_exited": server is None or server.poll() is not None,
             "private_auth_removed": not session.exists(),
-            "socket_removed": number is None or not Path(f"/tmp/.X11-unix/X{number}").exists()})
+            "socket_removed": number is None or not Path(f"/tmp/.X11-unix/X{number}").exists(),
+            "lock_removed": number is None or not Path(f"/tmp/.X{number}-lock").exists()}
+        save(evidence / "display-cleanup.json", result)
+        require(all(result.values()), "Private X11 server left a lock, socket, or other owned resource behind")
 
 
 class Terminal:
@@ -312,7 +341,8 @@ class Terminal:
         for _ in range(4):
             self.pump()
         os.close(self.master)
-        self.out.close(); self.err.close()
+        self.out.close()
+        self.err.close()
 
 
 def screenshot_png(ppm):
@@ -372,19 +402,22 @@ def drive(run, feature, entry):
                     require(hidden["map_state"] == 0, "Window did not become hidden")
                 elif feature == "events":
                     x11("queue-close", "close-event", TITLE)
-                terminal.send(); note("Type g to call Window.capture")
+                terminal.send()
+                note("Type g to call Window.capture")
                 if feature == "pixels":
                     terminal.ready("CAPTURED")
                     x11("screenshot-captured", "snapshot", TITLE, evidence / "window-captured.ppm")
                     require(screenshot_png(evidence / "window-captured.ppm") == bytes.fromhex("123456") * 6,
                             "Redrawn client does not contain the expected pixels")
-                    terminal.send(); note("Type g to close the window and read the captured array")
+                    terminal.send()
+                    note("Type g to close the window and read the captured array")
                 if feature == "recoverable-failure":
                     terminal.ready("RECOVERED 11")
                     recovered = x11("returned-window", "find", "BWC recovered")
                     require(recovered["map_state"] == 0, "Returned window was not usable after EAGAIN")
                     require(recovered["window"] == before["window"], "Failure returned a different X11 window")
-                    terminal.send(); note("Type g to close the returned window")
+                    terminal.send()
+                    note("Type g to close the returned window")
             code = terminal.finish()
             status["exit_code"] = code
             text = terminal.data.decode()
@@ -404,8 +437,9 @@ def drive(run, feature, entry):
                 require(lines == ["READY", "RECOVERED 11", "CLOSED"], "Failure did not preserve the usable Window owner")
             after = x11("window-after", "doctor")
             require(after["windows"] == [], "Consumer left an X11 window behind")
-            terminal.close(); terminal = None
-            status["passed"] = True
+            terminal.close()
+            terminal = None
+        status["passed"] = True
     except BaseException as error:
         status["error"] = str(error)
         raise
@@ -426,12 +460,23 @@ def cleanup(directory):
             current = token(record["pid"])
             if current == record["start"] and current is not None:
                 stop(record)
+    # Stop writers before the baseline so their final output remains part of the proof.
+    def snapshot():
+        return {str(file.relative_to(run.directory)): sha(file)
+                for file in run.directory.rglob("*") if file.is_file()
+                and file != run.directory / "cleanup.json"
+                and file != run.scratch and run.scratch not in file.parents}
+
+    artifacts = snapshot()
+    if run.scratch.exists():
         shutil.rmtree(run.scratch)
-    artifacts = {str(file.relative_to(run.directory)): sha(file)
-                 for file in run.directory.rglob("*") if file.is_file() and file.name != "cleanup.json"}
-    save(run.directory / "cleanup.json", {"scratch_removed": not run.scratch.exists(),
-        "evidence_files": artifacts, "evidence_preserved": bool(artifacts)})
-    require(all(sha(run.directory / name) == digest for name, digest in artifacts.items()), "Evidence changed during cleanup")
+    retained = snapshot()
+    report = {"scratch_removed": not run.scratch.exists(), "evidence_files": artifacts,
+              "evidence_preserved": bool(artifacts) and artifacts == retained}
+    if artifacts != retained:
+        report["evidence_after_cleanup"] = retained
+    save(run.directory / "cleanup.json", report)
+    require(report["evidence_preserved"], "Evidence changed during cleanup")
     print(f"CLEAN {run.directory}; {len(artifacts)} evidence files retained")
 
 
@@ -446,11 +491,16 @@ def main():
             sub.add_argument("--feature", choices=FEATURES, required=True)
             sub.add_argument("--entry", choices=("binary", "bend", "check"), default="binary")
     args = parser.parse_args()
-    if args.command == "setup-xvfb": setup_xvfb()
-    elif args.command == "launch": launch(args.run_dir)
-    elif args.command == "doctor": print(json.dumps(doctor(Run(args.run_dir)), indent=2))
-    elif args.command == "drive": drive(Run(args.run_dir), args.feature, args.entry)
-    else: cleanup(args.run_dir)
+    if args.command == "setup-xvfb":
+        setup_xvfb()
+    elif args.command == "launch":
+        launch(args.run_dir)
+    elif args.command == "doctor":
+        print(json.dumps(doctor(Run(args.run_dir)), indent=2))
+    elif args.command == "drive":
+        drive(Run(args.run_dir), args.feature, args.entry)
+    else:
+        cleanup(args.run_dir)
 
 
 if __name__ == "__main__":

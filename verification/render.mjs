@@ -54,7 +54,7 @@ const files = [...charts(path.join(root, "verification/charts")),
 for (const file of files) {
   const { svg } = render(fs.readFileSync(file, "utf8"),
     { limit: 1_000_000, outputLimit: 8_000_000, maxEdges: 10_000 });
-  fs.writeFileSync(file.replace(/\.mmd$/, ".svg"), svg.replace(/(<svg\b[^>]*>)/, `$1<style>${style}</style>`));
+  fs.writeFileSync(file.replace(/\.mmd$/, ".svg"), svg.replace(/(<svg\b[^>]*>)/, (tag) => `${tag}<style>${style}</style>`));
 }
 console.log(`Rendered ${files.length} charts with pele@1.9.0`);
 
@@ -76,11 +76,12 @@ function diagram(folder, compact = false) {
     <div class="diagram${compact ? " compact" : ""}">${svg}</div>
     <details class="source"><summary>Mermaid source</summary><pre><code class="language-mermaid">${escape(mmd)}</code></pre></details>`;
 }
-const primary = ["window-lifecycle", "capture-transaction"].map((area, index) =>
+const primaryAreas = ["window-lifecycle", "capture-transaction"];
+const primary = primaryAreas.map((area, index) =>
   `<section role="tabpanel" id="panel-${area}" aria-labelledby="tab-${area}" ${index ? "hidden" : ""}>
     <p class="caption">${index ? "Capture returns the same window with either a snapshot or an error. EAGAIN lets the caller decide whether to retry." : "The example closes the returned window before printing pixels or reporting a capture error. Opening failure exits directly."}</p>
     ${diagram(path.join(root, "verification/charts", area))}</section>`).join("");
-const internals = Object.keys(names).slice(2).map(area => `<details><summary>${names[area]}</summary>
+const internals = Object.keys(names).filter(area => !primaryAreas.includes(area)).map(area => `<details><summary>${names[area]}</summary>
   ${diagram(path.join(root, "verification/charts", area), true)}</details>`).join("");
 const negative = files.filter(file => file.includes(`${path.sep}mutation-evidence${path.sep}`)).map(file => {
   const folder = path.dirname(file);
