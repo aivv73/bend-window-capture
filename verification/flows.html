@@ -1,0 +1,1240 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Capture verification flows</title><style>
+:root { color-scheme: light dark; }
+body { margin:0; font-family:var(--font-sans,system-ui); color:var(--foreground,CanvasText); line-height:1.45; }
+* { box-sizing:border-box; } p { margin:10px 0; } .status { font-weight:600; }
+.tabs,.chart-tools { display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin:12px 0; }
+button { font:inherit; color:var(--foreground,CanvasText); background:var(--secondary,Canvas); border:1px solid var(--border,GrayText); border-radius:var(--radius,8px); padding:7px 12px; cursor:pointer; }
+button[aria-selected="true"] { border-color:var(--primary,Highlight); background:var(--accent,ButtonFace); }
+button:focus-visible,summary:focus-visible { outline:2px solid var(--ring,Highlight); outline-offset:2px; }
+.caption,.note,.chart-tools span { color:var(--muted-foreground,GrayText); font-size:14px; }
+.chart-tools button { font-size:13px; padding:4px 10px; }
+.diagram { height:860px; overflow:auto; border:1px solid var(--border,GrayText); border-radius:var(--radius,8px); }
+.diagram.compact { height:640px; } .diagram svg { display:block; margin:0 auto; }
+@media (max-width:480px) { .diagram,.diagram.compact { height:520px; } }
+details { margin:12px 0; border-top:1px solid var(--border,GrayText); padding-top:12px; }
+summary { cursor:pointer; font-weight:600; } details.source { border:0; padding-top:0; }
+pre { font:12px/1.5 var(--font-mono,monospace); overflow:auto; padding:16px; border-radius:var(--radius,8px); background:var(--code-background,Canvas); }
+table { width:100%; border-collapse:collapse; margin:14px 0; font-size:13px; }
+th,td { text-align:left; padding:8px 4px; border-bottom:1px solid var(--border,GrayText); }
+[hidden] { display:none !important; }
+</style></head><body>
+<p class="status">All 6 subsystem models pass. 12 source mutations are caught.</p>
+<div class="tabs" role="tablist" aria-label="Main user flows"><button id="tab-window-lifecycle" role="tab" aria-controls="panel-window-lifecycle" aria-selected="true" data-tab="window-lifecycle">Capture and close</button><button id="tab-capture-transaction" role="tab" aria-controls="panel-capture-transaction" aria-selected="false" data-tab="capture-transaction">Capture decisions</button></div>
+<section role="tabpanel" id="panel-window-lifecycle" aria-labelledby="tab-window-lifecycle" >
+    <p class="caption">The example closes the returned window before printing pixels or reporting a capture error. Opening failure exits directly.</p>
+    <div class="chart-tools"><button data-zoom="in">Zoom in</button><button data-zoom="fit">Fit</button><span>Scroll to pan when enlarged.</span></div>
+    <div class="diagram"><svg xmlns="http://www.w3.org/2000/svg" class="pele pele-state" viewBox="0 0 645 835" width="645" height="835" style="max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_tw:var(--pele-title-weight,bold);--_fm:var(--pele-font-mono,monospace);font:16px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,sans-serif)" fill="var(--_fg)" role="graphics-document document" aria-roledescription="state"><style>
+.pele { --pele-bg: transparent; --pele-fg: var(--foreground, #1c1c1c);
+  --pele-muted: var(--muted-foreground, #656565); --pele-line: var(--muted-foreground, #808080);
+  --pele-surface: var(--card, #fcfcfc); --pele-surface-alt: var(--secondary, #f1f1f1);
+  --pele-border: var(--border, #c9c9c9); --pele-font: var(--font-sans, sans-serif); }
+.pele .blue rect { fill: color-mix(in srgb, var(--info, #c3e0ff) 20%, var(--card, #ffffff)); }
+.pele .teal rect { fill: color-mix(in srgb, var(--success, #bfe3df) 20%, var(--card, #ffffff)); }
+.pele .orange rect { fill: color-mix(in srgb, var(--warning, #f0d3bf) 20%, var(--card, #ffffff)); }
+.pele .breaks rect { fill: var(--destructive-surface, #ffecee) !important;
+  stroke: var(--destructive, #e72e3b) !important; stroke-width: 2.5px !important; }
+.pele .breaks text { fill: var(--destructive, #cd2834) !important; }
+.pele .mayBreak rect { fill: var(--warning-surface, #fff3e6) !important;
+  stroke: var(--warning, #e8730c) !important; stroke-width: 2.5px !important; }
+.pele .mayBreak text { fill: var(--warning, #b85a06) !important; }
+.pele .bugPath rect { stroke: var(--info, #1680f3) !important; stroke-width: 2.5px !important; }
+.pele .repeats rect { stroke: var(--chart-3, #9b35d6) !important; stroke-width: 2.5px !important; stroke-dasharray: 6 3; }
+@media (prefers-color-scheme: dark) {
+ .pele { --pele-fg: var(--foreground, #f5f5f5); --pele-muted: var(--muted-foreground, #acacac);
+   --pele-line: var(--muted-foreground, #939393); --pele-surface: var(--card, #121212);
+   --pele-surface-alt: var(--secondary, #2c2c2c); --pele-border: var(--border, #4e4e4e); }
+ .pele .blue rect { fill: color-mix(in srgb, var(--info, #1b3857) 20%, var(--card, #121212)); }
+ .pele .teal rect { fill: color-mix(in srgb, var(--success, #174641) 20%, var(--card, #121212)); }
+ .pele .orange rect { fill: color-mix(in srgb, var(--warning, #573117) 20%, var(--card, #121212)); }
+ .pele .breaks rect { fill: var(--destructive-surface, #2e2021) !important; }
+ .pele .breaks text { fill: var(--destructive, #ff6463) !important; }
+}
+</style><text class="pele-title" font-weight="var(--_tw)" text-anchor="middle" xml:space="preserve"><tspan x="322.5" y="25.6">Capture a window, close it, then read its pixels</tspan></text><g transform="translate(0,36)"><g class="pele-clusters"><g class="pele-cluster pele-state-composite" data-id="legend"><rect x="255.96" y="8" width="380.51" height="112" rx="10" fill="var(--_a)" fill-opacity="0.5" stroke="var(--_b)"/><path d="M255.96,44H636.47" fill="none" stroke="var(--_b)"/><text class="pele-cluster-label" x="446.22" y="31.6" text-anchor="middle">Legend</text></g></g><g class="pele-edges" fill="none" stroke="var(--_l)" stroke-linecap="round"><g class="pele-edge pele-transition" data-id="edge0"><path d="M208.96,120L208.96,157"/><path class="pele-marker" d="M208.96,164L205.6,156L212.32,156Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge1"><path d="M179.15,208C179.15,217.25 107.15,217.25 107.15,226.5L107.15,270"/><path class="pele-marker" d="M107.15,277L103.79,269L110.51,269Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge2"><path d="M238.77,208C238.77,217.25 310.77,217.25 310.77,226.5L310.77,270"/><path class="pele-marker" d="M310.77,277L307.41,269L314.13,269Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge3"><path d="M310.77,321L310.77,383"/><path class="pele-marker" d="M310.77,390L307.41,382L314.13,382Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge4"><path d="M300.53,434C300.53,443.25 186.96,443.25 186.96,452.5L186.96,496"/><path class="pele-marker" d="M186.96,503L183.6,495L190.32,495Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge5"><path d="M321.01,434C321.01,443.25 434.58,443.25 434.58,452.5L434.58,496"/><path class="pele-marker" d="M434.58,503L431.22,495L437.94,495Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge6"><path d="M186.96,547L186.96,609"/><path class="pele-marker" d="M186.96,616L183.6,608L190.32,608Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge7"><path d="M434.58,547L434.58,609"/><path class="pele-marker" d="M434.58,616L431.22,608L437.94,608Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge8"><path d="M186.96,678L186.96,740"/><path class="pele-marker" d="M186.96,747L183.6,739L190.32,739Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge9"><path d="M434.58,678L434.58,740"/><path class="pele-marker" d="M434.58,747L431.22,739L437.94,739Z" fill="var(--_l)" stroke="none"/></g></g><g class="pele-edge-labels" font-size="14"><g class="pele-edge-label" data-id="edge1"><rect x="63.85" y="228.5" width="86.6" height="21" rx="3" fill="var(--_bg)"/><text x="107.15" y="243.9" text-anchor="middle">opening fails</text></g><g class="pele-edge-label" data-id="edge2"><rect x="262.42" y="228.5" width="96.7" height="21" rx="3" fill="var(--_bg)"/><text x="310.77" y="243.9" text-anchor="middle">window opens</text></g><g class="pele-edge-label" data-id="edge3"><rect x="258.92" y="341.5" width="103.7" height="21" rx="3" fill="var(--_bg)"/><text x="310.77" y="356.9" text-anchor="middle">draw the image</text></g><g class="pele-edge-label" data-id="edge4"><rect x="128.1" y="454.5" width="117.72" height="21" rx="3" fill="var(--_bg)"/><text x="186.96" y="469.9" text-anchor="middle">capture succeeds</text></g><g class="pele-edge-label" data-id="edge5"><rect x="392.84" y="454.5" width="83.47" height="21" rx="3" fill="var(--_bg)"/><text x="434.58" y="469.9" text-anchor="middle">capture fails</text></g><g class="pele-edge-label" data-id="edge6"><rect x="101.64" y="567.5" width="170.62" height="21" rx="3" fill="var(--_bg)"/><text x="186.96" y="582.9" text-anchor="middle">close the returned window</text></g><g class="pele-edge-label" data-id="edge7"><rect x="349.27" y="567.5" width="170.62" height="21" rx="3" fill="var(--_bg)"/><text x="434.58" y="582.9" text-anchor="middle">close the returned window</text></g><g class="pele-edge-label" data-id="edge8"><rect x="120.32" y="698.5" width="133.27" height="21" rx="3" fill="var(--_bg)"/><text x="186.96" y="713.9" text-anchor="middle">print captured pixels</text></g><g class="pele-edge-label" data-id="edge9"><rect x="358.61" y="698.5" width="151.95" height="21" rx="3" fill="var(--_bg)"/><text x="434.58" y="713.9" text-anchor="middle">report the capture error</text></g></g><g class="pele-nodes"><g class="pele-node pele-state blue" data-id="s0" transform="translate(208.96,186)"><rect x="-81.81" y="-22" width="163.62" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Opening a window</text></g><g class="pele-node pele-state orange" data-id="s1" transform="translate(107.15,299)"><rect x="-99.15" y="-22" width="198.3" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Window could not open</text></g><g class="pele-node pele-state blue" data-id="s2" transform="translate(310.77,299)"><rect x="-64.46" y="-22" width="128.93" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Window open</text></g><g class="pele-node pele-state blue" data-id="s3" transform="translate(310.77,412)"><rect x="-62.24" y="-22" width="124.48" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Image drawn</text></g><g class="pele-node pele-state blue" data-id="s4" transform="translate(186.96,525)"><rect x="-72.03" y="-22" width="144.06" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Snapshot ready</text></g><g class="pele-node pele-state blue" data-id="s5" transform="translate(434.58,525)"><rect x="-65.8" y="-22" width="131.6" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Capture failed</text></g><g class="pele-node pele-state blue" data-id="s6" transform="translate(186.96,647)"><rect x="-106.7" y="-31" width="213.41" height="62" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" text-anchor="middle" xml:space="preserve"><tspan x="0" y="-4.9">Window closed, snapshot</tspan><tspan x="0" y="16.1">ready</tspan></text></g><g class="pele-node pele-state blue" data-id="s7" transform="translate(434.58,647)"><rect x="-100.92" y="-31" width="201.84" height="62" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" text-anchor="middle" xml:space="preserve"><tspan x="0" y="-4.9">Window closed, capture</tspan><tspan x="0" y="16.1">failed</tspan></text></g><g class="pele-node pele-state teal" data-id="s8" transform="translate(186.96,769)"><rect x="-64.02" y="-22" width="128.03" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Pixels printed</text></g><g class="pele-node pele-state orange" data-id="s9" transform="translate(434.58,769)"><rect x="-65.79" y="-22" width="131.58" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Error reported</text></g><g class="pele-node pele-state-start" data-id="root_start" transform="translate(208.96,113)"><circle r="7" fill="var(--_l)"/></g><g class="pele-node pele-state teal" data-id="lg0" transform="translate(315.53,82)"><rect x="-43.57" y="-22" width="87.14" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">finished</text></g><g class="pele-node pele-state blue" data-id="lg1" transform="translate(454.66,82)"><rect x="-55.57" y="-22" width="111.14" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">in progress</text></g><g class="pele-node pele-state orange" data-id="lg2" transform="translate(585.35,82)"><rect x="-35.12" y="-22" width="70.24" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">failed</text></g></g></g></svg></div>
+    <details class="source"><summary>Mermaid source</summary><pre><code class="language-mermaid">---
+title: &quot;Capture a window, close it, then read its pixels&quot;
+---
+stateDiagram-v2
+  state &quot;Legend&quot; as legend {
+    lg0: finished
+    lg1: in progress
+    lg2: failed
+  }
+  class lg0 teal
+  class lg1 blue
+  class lg2 orange
+  s0: Opening a window
+  s1: Window could not open
+  s2: Window open
+  s3: Image drawn
+  s4: Snapshot ready
+  s5: Capture failed
+  s6: Window closed, snapshot ready
+  s7: Window closed, capture failed
+  s8: Pixels printed
+  s9: Error reported
+  [*] --&gt; s0
+  s0 --&gt; s1: opening fails
+  s0 --&gt; s2: window opens
+  s2 --&gt; s3: draw the image
+  s3 --&gt; s4: capture succeeds
+  s3 --&gt; s5: capture fails
+  s4 --&gt; s6: close the returned window
+  s5 --&gt; s7: close the returned window
+  s6 --&gt; s8: print captured pixels
+  s7 --&gt; s9: report the capture error
+  class s0 blue
+  class s1 orange
+  class s2 blue
+  class s3 blue
+  class s4 blue
+  class s5 blue
+  class s6 blue
+  class s7 blue
+  class s8 teal
+  class s9 orange
+</code></pre></details></section><section role="tabpanel" id="panel-capture-transaction" aria-labelledby="tab-capture-transaction" hidden>
+    <p class="caption">Capture returns the same window with either a snapshot or an error. EAGAIN lets the caller decide whether to retry.</p>
+    <div class="chart-tools"><button data-zoom="in">Zoom in</button><button data-zoom="fit">Fit</button><span>Scroll to pan when enlarged.</span></div>
+    <div class="diagram"><svg xmlns="http://www.w3.org/2000/svg" class="pele pele-state" viewBox="0 0 1168 998" width="1168" height="998" style="max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_tw:var(--pele-title-weight,bold);--_fm:var(--pele-font-mono,monospace);font:16px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,sans-serif)" fill="var(--_fg)" role="graphics-document document" aria-roledescription="state"><style>
+.pele { --pele-bg: transparent; --pele-fg: var(--foreground, #1c1c1c);
+  --pele-muted: var(--muted-foreground, #656565); --pele-line: var(--muted-foreground, #808080);
+  --pele-surface: var(--card, #fcfcfc); --pele-surface-alt: var(--secondary, #f1f1f1);
+  --pele-border: var(--border, #c9c9c9); --pele-font: var(--font-sans, sans-serif); }
+.pele .blue rect { fill: color-mix(in srgb, var(--info, #c3e0ff) 20%, var(--card, #ffffff)); }
+.pele .teal rect { fill: color-mix(in srgb, var(--success, #bfe3df) 20%, var(--card, #ffffff)); }
+.pele .orange rect { fill: color-mix(in srgb, var(--warning, #f0d3bf) 20%, var(--card, #ffffff)); }
+.pele .breaks rect { fill: var(--destructive-surface, #ffecee) !important;
+  stroke: var(--destructive, #e72e3b) !important; stroke-width: 2.5px !important; }
+.pele .breaks text { fill: var(--destructive, #cd2834) !important; }
+.pele .mayBreak rect { fill: var(--warning-surface, #fff3e6) !important;
+  stroke: var(--warning, #e8730c) !important; stroke-width: 2.5px !important; }
+.pele .mayBreak text { fill: var(--warning, #b85a06) !important; }
+.pele .bugPath rect { stroke: var(--info, #1680f3) !important; stroke-width: 2.5px !important; }
+.pele .repeats rect { stroke: var(--chart-3, #9b35d6) !important; stroke-width: 2.5px !important; stroke-dasharray: 6 3; }
+@media (prefers-color-scheme: dark) {
+ .pele { --pele-fg: var(--foreground, #f5f5f5); --pele-muted: var(--muted-foreground, #acacac);
+   --pele-line: var(--muted-foreground, #939393); --pele-surface: var(--card, #121212);
+   --pele-surface-alt: var(--secondary, #2c2c2c); --pele-border: var(--border, #4e4e4e); }
+ .pele .blue rect { fill: color-mix(in srgb, var(--info, #1b3857) 20%, var(--card, #121212)); }
+ .pele .teal rect { fill: color-mix(in srgb, var(--success, #174641) 20%, var(--card, #121212)); }
+ .pele .orange rect { fill: color-mix(in srgb, var(--warning, #573117) 20%, var(--card, #121212)); }
+ .pele .breaks rect { fill: var(--destructive-surface, #2e2021) !important; }
+ .pele .breaks text { fill: var(--destructive, #ff6463) !important; }
+}
+</style><text class="pele-title" font-weight="var(--_tw)" text-anchor="middle" xml:space="preserve"><tspan x="584" y="25.6">Capture success and failures that return your window</tspan></text><g transform="translate(0,36)"><g class="pele-clusters"><g class="pele-cluster pele-state-composite" data-id="legend"><rect x="415.05" y="8" width="380.51" height="112" rx="10" fill="var(--_a)" fill-opacity="0.5" stroke="var(--_b)"/><path d="M415.05,44H795.57" fill="none" stroke="var(--_b)"/><text class="pele-cluster-label" x="605.31" y="31.6" text-anchor="middle">Legend</text></g></g><g class="pele-edges" fill="none" stroke="var(--_l)" stroke-linecap="round"><g class="pele-edge pele-transition" data-id="edge0"><path d="M368.05,120L368.05,157"/><path class="pele-marker" d="M368.05,164L364.69,156L371.41,156Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge1"><path d="M337.8,208C337.8,242.5 77.81,242.5 77.81,277L77.81,859.75C77.81,869.13 138.46,869.13 138.46,878.5L138.46,884.5"/><path class="pele-marker" d="M138.46,891.5L135.1,883.5L141.82,883.5Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge2"><path d="M398.31,208C398.31,217.25 461.64,217.25 461.64,226.5L461.64,270"/><path class="pele-marker" d="M461.64,277L458.28,269L465,269Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge3"><path d="M435.4,321C435.4,330.25 366.91,330.25 366.91,339.5L366.91,383"/><path class="pele-marker" d="M366.91,390L363.55,382L370.27,382Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge4"><path d="M487.88,321C487.88,355.5 731,355.5 731,390L731,697.25C731,704.18 527.96,709.07 527.96,716L527.96,722"/><path class="pele-marker" d="M527.96,729L524.6,721L531.32,721Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge5"><path d="M327.33,434C327.33,468.5 276,468.5 276,503L276,660C276,688 465.68,688 465.68,716L465.68,722"/><path class="pele-marker" d="M465.68,729L462.32,721L469.04,721Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge6"><path d="M406.49,434C406.49,443.25 457.82,443.25 457.82,452.5L457.82,496"/><path class="pele-marker" d="M457.82,503L454.46,495L461.18,495Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge7"><path d="M519.96,773C519.96,790.36 543.87,801 582.9,801C621.93,801 645.84,816.2 645.84,841L645.84,866C645.84,872.94 726.02,872.94 726.02,879.88L726.02,884.5"/><path class="pele-marker" d="M726.02,891.5L722.66,883.5L729.38,883.5Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge8"><path d="M473.68,773C473.68,790.36 421.06,801 335.2,801C249.34,801 196.71,816.2 196.71,841L196.71,884.5"/><path class="pele-marker" d="M196.71,891.5L193.35,883.5L200.07,883.5Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge9"><path d="M441.35,547C441.35,581.5 392.01,581.5 392.01,616L392.01,660C392.01,688 481.68,688 481.68,716L481.68,722"/><path class="pele-marker" d="M481.68,729L478.32,721L485.04,721Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge10"><path d="M474.28,547C474.28,556.25 609.63,556.25 609.63,565.5L609.63,609"/><path class="pele-marker" d="M609.63,616L606.27,608L612.99,608Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge11"><path d="M651,660C651,666.73 854.49,671.77 854.49,678.5L854.49,722"/><path class="pele-marker" d="M854.49,729L851.13,721L857.85,721Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge12"><path d="M601.63,660L601.63,703.5C601.63,710.44 511.96,710.44 511.96,717.38L511.96,722"/><path class="pele-marker" d="M511.96,729L508.6,721L515.32,721Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge13"><path d="M886.53,773C886.53,807 1065.62,807 1065.62,841L1065.62,884.5"/><path class="pele-marker" d="M1065.62,891.5L1062.26,883.5L1068.98,883.5Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge14"><path d="M854.49,773L854.49,884.5"/><path class="pele-marker" d="M854.49,891.5L851.13,883.5L857.85,883.5Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge15"><path d="M822.45,773C822.45,797.8 736.97,813 597.5,813C458.02,813 372.54,823.64 372.54,841L372.54,866C372.54,872.55 254.97,873.33 254.97,879.88L254.97,884.5"/><path class="pele-marker" d="M254.97,891.5L251.61,883.5L258.33,883.5Z" fill="var(--_l)" stroke="none"/></g></g><g class="pele-edge-labels" font-size="14"><g class="pele-edge-label" data-id="edge1"><rect x="10" y="514.5" width="135.62" height="21" rx="3" fill="var(--_bg)"/><text x="77.81" y="529.9" text-anchor="middle">backend unavailable</text></g><g class="pele-edge-label" data-id="edge2"><rect x="380.99" y="228.5" width="161.3" height="21" rx="3" fill="var(--_bg)"/><text x="461.64" y="243.9" text-anchor="middle">native backend available</text></g><g class="pele-edge-label" data-id="edge3"><rect x="288.22" y="341.5" width="157.38" height="21" rx="3" fill="var(--_bg)"/><text x="366.91" y="356.9" text-anchor="middle">drawing is synchronized</text></g><g class="pele-edge-label" data-id="edge4"><rect x="648.01" y="514.5" width="165.98" height="21" rx="3" fill="var(--_bg)"/><text x="731" y="529.9" text-anchor="middle">pending X11 request fails</text></g><g class="pele-edge-label" data-id="edge5"><rect x="192.65" y="514.5" width="166.7" height="21" rx="3" fill="var(--_bg)"/><text x="276" y="529.9" text-anchor="middle">window fails initial checks</text></g><g class="pele-edge-label" data-id="edge6"><rect x="364.74" y="454.5" width="186.16" height="21" rx="3" fill="var(--_bg)"/><text x="457.82" y="469.9" text-anchor="middle">window passes initial checks</text></g><g class="pele-edge-label" data-id="edge7"><rect x="556.25" y="843" width="179.18" height="21" rx="3" fill="var(--_bg)"/><text x="645.84" y="858.4" text-anchor="middle">return EAGAIN and window</text></g><g class="pele-edge-label" data-id="edge8"><rect x="118.8" y="843" width="155.83" height="21" rx="3" fill="var(--_bg)"/><text x="196.71" y="858.4" text-anchor="middle">return error and window</text></g><g class="pele-edge-label" data-id="edge9"><rect x="297.76" y="627.5" width="188.5" height="21" rx="3" fill="var(--_bg)"/><text x="392.01" y="642.9" text-anchor="middle">readback or color format fails</text></g><g class="pele-edge-label" data-id="edge10"><rect x="546.11" y="567.5" width="127.04" height="21" rx="3" fill="var(--_bg)"/><text x="609.63" y="582.9" text-anchor="middle">pixels are available</text></g><g class="pele-edge-label" data-id="edge11"><rect x="793.7" y="680.5" width="121.58" height="21" rx="3" fill="var(--_bg)"/><text x="854.49" y="695.9" text-anchor="middle">client still matches</text></g><g class="pele-edge-label" data-id="edge12"><rect x="500.75" y="680.5" width="201.76" height="21" rx="3" fill="var(--_bg)"/><text x="601.63" y="695.9" text-anchor="middle">client changes during readback</text></g><g class="pele-edge-label" data-id="edge13"><rect x="974.08" y="843" width="183.08" height="21" rx="3" fill="var(--_bg)"/><text x="1065.62" y="858.4" text-anchor="middle">return snapshot and window</text></g><g class="pele-edge-label" data-id="edge14"><rect x="764.9" y="843" width="179.18" height="21" rx="3" fill="var(--_bg)"/><text x="854.49" y="858.4" text-anchor="middle">return EAGAIN and window</text></g><g class="pele-edge-label" data-id="edge15"><rect x="294.63" y="843" width="155.83" height="21" rx="3" fill="var(--_bg)"/><text x="372.54" y="858.4" text-anchor="middle">return error and window</text></g></g><g class="pele-nodes"><g class="pele-node pele-state blue" data-id="s0" transform="translate(368.05,186)"><rect x="-82.26" y="-22" width="164.51" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Capture requested</text></g><g class="pele-node pele-state orange" data-id="s1" transform="translate(196.71,913.5)"><rect x="-110.26" y="-22" width="220.51" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Error and window returned</text></g><g class="pele-node pele-state blue" data-id="s2" transform="translate(461.64,299)"><rect x="-78.24" y="-22" width="156.48" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Finishing drawing</text></g><g class="pele-node pele-state blue" data-id="s3" transform="translate(366.91,412)"><rect x="-91.58" y="-22" width="183.17" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Checking the window</text></g><g class="pele-node pele-state blue" data-id="s4" transform="translate(496.82,751)"><rect x="-75.14" y="-22" width="150.27" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Capture rejected</text></g><g class="pele-node pele-state orange" data-id="s5" transform="translate(787.83,922.5)"><rect x="-113.81" y="-31" width="227.62" height="62" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" text-anchor="middle" xml:space="preserve"><tspan x="0" y="-4.9">Retryable error and window</tspan><tspan x="0" y="16.1">returned</tspan></text></g><g class="pele-node pele-state blue" data-id="s6" transform="translate(457.82,525)"><rect x="-68.46" y="-22" width="136.93" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Reading pixels</text></g><g class="pele-node pele-state blue" data-id="s7" transform="translate(609.63,638)"><rect x="-93.37" y="-22" width="186.74" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Checking for changes</text></g><g class="pele-node pele-state blue" data-id="s8" transform="translate(854.49,751)"><rect x="-84.04" y="-22" width="168.08" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Snapshot validated</text></g><g class="pele-node pele-state teal" data-id="s9" transform="translate(1065.62,922.5)"><rect x="-94.26" y="-31" width="188.53" height="62" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" text-anchor="middle" xml:space="preserve"><tspan x="0" y="-4.9">Snapshot and window</tspan><tspan x="0" y="16.1">returned</tspan></text></g><g class="pele-node pele-state-start" data-id="root_start" transform="translate(368.05,113)"><circle r="7" fill="var(--_l)"/></g><g class="pele-node pele-state teal" data-id="lg0" transform="translate(474.62,82)"><rect x="-43.57" y="-22" width="87.14" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">finished</text></g><g class="pele-node pele-state blue" data-id="lg1" transform="translate(613.76,82)"><rect x="-55.57" y="-22" width="111.14" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">in progress</text></g><g class="pele-node pele-state orange" data-id="lg2" transform="translate(744.45,82)"><rect x="-35.12" y="-22" width="70.24" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">failed</text></g></g></g></svg></div>
+    <details class="source"><summary>Mermaid source</summary><pre><code class="language-mermaid">---
+title: &quot;Capture success and failures that return your window&quot;
+---
+stateDiagram-v2
+  state &quot;Legend&quot; as legend {
+    lg0: finished
+    lg1: in progress
+    lg2: failed
+  }
+  class lg0 teal
+  class lg1 blue
+  class lg2 orange
+  s0: Capture requested
+  s1: Error and window returned
+  s2: Finishing drawing
+  s3: Checking the window
+  s4: Capture rejected
+  s5: Retryable error and window returned
+  s6: Reading pixels
+  s7: Checking for changes
+  s8: Snapshot validated
+  s9: Snapshot and window returned
+  [*] --&gt; s0
+  s0 --&gt; s1: backend unavailable
+  s0 --&gt; s2: native backend available
+  s2 --&gt; s3: drawing is synchronized
+  s2 --&gt; s4: pending X11 request fails
+  s3 --&gt; s4: window fails initial checks
+  s3 --&gt; s6: window passes initial checks
+  s4 --&gt; s5: return EAGAIN and window
+  s4 --&gt; s1: return error and window
+  s6 --&gt; s4: readback or color format fails
+  s6 --&gt; s7: pixels are available
+  s7 --&gt; s8: client still matches
+  s7 --&gt; s4: client changes during readback
+  s8 --&gt; s9: return snapshot and window
+  s8 --&gt; s5: return EAGAIN and window
+  s8 --&gt; s1: return error and window
+  class s0 blue
+  class s1 orange
+  class s2 blue
+  class s3 blue
+  class s4 blue
+  class s5 orange
+  class s6 blue
+  class s7 blue
+  class s8 blue
+  class s9 teal
+</code></pre></details></section>
+<p class="note">These charts collapse internal steps and terminal self-loops. The models cover one attempt under the documented bounds. Real X11 rendering, allocation failure, and arbitrary concurrent Xlib callers remain outside the proof.</p>
+<details><summary>Four implementation protocols</summary><details><summary>X11 error handling</summary>
+  <div class="chart-tools"><button data-zoom="in">Zoom in</button><button data-zoom="fit">Fit</button><span>Scroll to pan when enlarged.</span></div>
+    <div class="diagram compact"><svg xmlns="http://www.w3.org/2000/svg" class="pele pele-state" viewBox="0 0 553 930" width="553" height="930" style="max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_tw:var(--pele-title-weight,bold);--_fm:var(--pele-font-mono,monospace);font:16px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,sans-serif)" fill="var(--_fg)" role="graphics-document document" aria-roledescription="state"><style>
+.pele { --pele-bg: transparent; --pele-fg: var(--foreground, #1c1c1c);
+  --pele-muted: var(--muted-foreground, #656565); --pele-line: var(--muted-foreground, #808080);
+  --pele-surface: var(--card, #fcfcfc); --pele-surface-alt: var(--secondary, #f1f1f1);
+  --pele-border: var(--border, #c9c9c9); --pele-font: var(--font-sans, sans-serif); }
+.pele .blue rect { fill: color-mix(in srgb, var(--info, #c3e0ff) 20%, var(--card, #ffffff)); }
+.pele .teal rect { fill: color-mix(in srgb, var(--success, #bfe3df) 20%, var(--card, #ffffff)); }
+.pele .orange rect { fill: color-mix(in srgb, var(--warning, #f0d3bf) 20%, var(--card, #ffffff)); }
+.pele .breaks rect { fill: var(--destructive-surface, #ffecee) !important;
+  stroke: var(--destructive, #e72e3b) !important; stroke-width: 2.5px !important; }
+.pele .breaks text { fill: var(--destructive, #cd2834) !important; }
+.pele .mayBreak rect { fill: var(--warning-surface, #fff3e6) !important;
+  stroke: var(--warning, #e8730c) !important; stroke-width: 2.5px !important; }
+.pele .mayBreak text { fill: var(--warning, #b85a06) !important; }
+.pele .bugPath rect { stroke: var(--info, #1680f3) !important; stroke-width: 2.5px !important; }
+.pele .repeats rect { stroke: var(--chart-3, #9b35d6) !important; stroke-width: 2.5px !important; stroke-dasharray: 6 3; }
+@media (prefers-color-scheme: dark) {
+ .pele { --pele-fg: var(--foreground, #f5f5f5); --pele-muted: var(--muted-foreground, #acacac);
+   --pele-line: var(--muted-foreground, #939393); --pele-surface: var(--card, #121212);
+   --pele-surface-alt: var(--secondary, #2c2c2c); --pele-border: var(--border, #4e4e4e); }
+ .pele .blue rect { fill: color-mix(in srgb, var(--info, #1b3857) 20%, var(--card, #121212)); }
+ .pele .teal rect { fill: color-mix(in srgb, var(--success, #174641) 20%, var(--card, #121212)); }
+ .pele .orange rect { fill: color-mix(in srgb, var(--warning, #573117) 20%, var(--card, #121212)); }
+ .pele .breaks rect { fill: var(--destructive-surface, #2e2021) !important; }
+ .pele .breaks text { fill: var(--destructive, #ff6463) !important; }
+}
+</style><text class="pele-title" font-weight="var(--_tw)" text-anchor="middle" xml:space="preserve"><tspan x="276.5" y="25.6">Install, drain, and restore the capture error handler</tspan></text><g transform="translate(0,36)"><g class="pele-clusters"><g class="pele-cluster pele-state-composite" data-id="legend"><rect x="274.03" y="8" width="270.27" height="112" rx="10" fill="var(--_a)" fill-opacity="0.5" stroke="var(--_b)"/><path d="M274.03,44H544.31" fill="none" stroke="var(--_b)"/><text class="pele-cluster-label" x="409.17" y="31.6" text-anchor="middle">Legend</text></g></g><g class="pele-edges" fill="none" stroke="var(--_l)" stroke-linecap="round"><g class="pele-edge pele-transition" data-id="edge0"><path d="M227.03,120L227.03,157"/><path class="pele-marker" d="M227.03,164L223.67,156L230.39,156Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge1"><path d="M227.03,208L227.03,270"/><path class="pele-marker" d="M227.03,277L223.67,269L230.39,269Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge2"><path d="M227.03,321L227.03,383"/><path class="pele-marker" d="M227.03,390L223.67,382L230.39,382Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge3"><path d="M182.55,434C182.55,443.25 118.7,443.25 118.7,452.5L118.7,496"/><path class="pele-marker" d="M118.7,503L115.34,495L122.06,495Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge4"><path d="M271.51,434C271.51,468.5 335.37,468.5 335.37,503L335.37,547C335.37,575 253.73,575 253.73,603L253.73,609"/><path class="pele-marker" d="M253.73,616L250.37,608L257.09,608Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge5"><path d="M118.7,547L118.7,590.5C118.7,597.44 200.34,597.44 200.34,604.38L200.34,609"/><path class="pele-marker" d="M200.34,616L196.98,608L203.7,608Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge6"><path d="M227.03,660L227.03,722"/><path class="pele-marker" d="M227.03,729L223.67,721L230.39,721Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge7"><path d="M227.03,773L227.03,835"/><path class="pele-marker" d="M227.03,842L223.67,834L230.39,834Z" fill="var(--_l)" stroke="none"/></g></g><g class="pele-edge-labels" font-size="14"><g class="pele-edge-label" data-id="edge1"><rect x="151.05" y="228.5" width="151.96" height="21" rx="3" fill="var(--_bg)"/><text x="227.03" y="243.9" text-anchor="middle">publish capture context</text></g><g class="pele-edge-label" data-id="edge2"><rect x="154.56" y="341.5" width="144.95" height="21" rx="3" fill="var(--_bg)"/><text x="227.03" y="356.9" text-anchor="middle">install capture handler</text></g><g class="pele-edge-label" data-id="edge3"><rect x="51.67" y="454.5" width="134.06" height="21" rx="3" fill="var(--_bg)"/><text x="118.7" y="469.9" text-anchor="middle">capture request fails</text></g><g class="pele-edge-label" data-id="edge4"><rect x="259.39" y="514.5" width="151.96" height="21" rx="3" fill="var(--_bg)"/><text x="335.37" y="529.9" text-anchor="middle">finish pending requests</text></g><g class="pele-edge-label" data-id="edge5"><rect x="42.71" y="567.5" width="151.96" height="21" rx="3" fill="var(--_bg)"/><text x="118.7" y="582.9" text-anchor="middle">finish pending requests</text></g><g class="pele-edge-label" data-id="edge6"><rect x="147.56" y="680.5" width="158.95" height="21" rx="3" fill="var(--_bg)"/><text x="227.03" y="695.9" text-anchor="middle">restore previous handler</text></g><g class="pele-edge-label" data-id="edge7"><rect x="158.06" y="793.5" width="137.95" height="21" rx="3" fill="var(--_bg)"/><text x="227.03" y="808.9" text-anchor="middle">clear capture context</text></g></g><g class="pele-nodes"><g class="pele-node pele-state blue" data-id="s0" transform="translate(227.03,186)"><rect x="-99.14" y="-22" width="198.29" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Previous handler active</text></g><g class="pele-node pele-state blue" data-id="s1" transform="translate(227.03,299)"><rect x="-108.94" y="-22" width="217.87" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Capture context published</text></g><g class="pele-node pele-state blue" data-id="s2" transform="translate(227.03,412)"><rect x="-96.48" y="-22" width="192.96" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Capture handler active</text></g><g class="pele-node pele-state blue" data-id="s3" transform="translate(118.7,525)"><rect x="-110.7" y="-22" width="221.39" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">First capture error retained</text></g><g class="pele-node pele-state blue" data-id="s4" transform="translate(227.03,638)"><rect x="-78.7" y="-22" width="157.39" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Requests drained</text></g><g class="pele-node pele-state blue" data-id="s5" transform="translate(227.03,751)"><rect x="-107.59" y="-22" width="215.18" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Previous handler restored</text></g><g class="pele-node pele-state teal" data-id="s6" transform="translate(227.03,864)"><rect x="-100.93" y="-22" width="201.86" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Capture context cleared</text></g><g class="pele-node pele-state-start" data-id="root_start" transform="translate(227.03,113)"><circle r="7" fill="var(--_l)"/></g><g class="pele-node pele-state teal" data-id="lg0" transform="translate(333.6,82)"><rect x="-43.57" y="-22" width="87.14" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">finished</text></g><g class="pele-node pele-state blue" data-id="lg1" transform="translate(472.74,82)"><rect x="-55.57" y="-22" width="111.14" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">in progress</text></g></g></g></svg></div>
+    <details class="source"><summary>Mermaid source</summary><pre><code class="language-mermaid">---
+title: &quot;Install, drain, and restore the capture error handler&quot;
+---
+stateDiagram-v2
+  state &quot;Legend&quot; as legend {
+    lg0: finished
+    lg1: in progress
+  }
+  class lg0 teal
+  class lg1 blue
+  s0: Previous handler active
+  s1: Capture context published
+  s2: Capture handler active
+  s3: First capture error retained
+  s4: Requests drained
+  s5: Previous handler restored
+  s6: Capture context cleared
+  [*] --&gt; s0
+  s0 --&gt; s1: publish capture context
+  s1 --&gt; s2: install capture handler
+  s2 --&gt; s3: capture request fails
+  s2 --&gt; s4: finish pending requests
+  s3 --&gt; s4: finish pending requests
+  s4 --&gt; s5: restore previous handler
+  s5 --&gt; s6: clear capture context
+  class s0 blue
+  class s1 blue
+  class s2 blue
+  class s3 blue
+  class s4 blue
+  class s5 blue
+  class s6 teal
+</code></pre></details></details><details><summary>Pixel ownership</summary>
+  <div class="chart-tools"><button data-zoom="in">Zoom in</button><button data-zoom="fit">Fit</button><span>Scroll to pan when enlarged.</span></div>
+    <div class="diagram compact"><svg xmlns="http://www.w3.org/2000/svg" class="pele pele-state" viewBox="0 0 638 853" width="638" height="853" style="max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_tw:var(--pele-title-weight,bold);--_fm:var(--pele-font-mono,monospace);font:16px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,sans-serif)" fill="var(--_fg)" role="graphics-document document" aria-roledescription="state"><style>
+.pele { --pele-bg: transparent; --pele-fg: var(--foreground, #1c1c1c);
+  --pele-muted: var(--muted-foreground, #656565); --pele-line: var(--muted-foreground, #808080);
+  --pele-surface: var(--card, #fcfcfc); --pele-surface-alt: var(--secondary, #f1f1f1);
+  --pele-border: var(--border, #c9c9c9); --pele-font: var(--font-sans, sans-serif); }
+.pele .blue rect { fill: color-mix(in srgb, var(--info, #c3e0ff) 20%, var(--card, #ffffff)); }
+.pele .teal rect { fill: color-mix(in srgb, var(--success, #bfe3df) 20%, var(--card, #ffffff)); }
+.pele .orange rect { fill: color-mix(in srgb, var(--warning, #f0d3bf) 20%, var(--card, #ffffff)); }
+.pele .breaks rect { fill: var(--destructive-surface, #ffecee) !important;
+  stroke: var(--destructive, #e72e3b) !important; stroke-width: 2.5px !important; }
+.pele .breaks text { fill: var(--destructive, #cd2834) !important; }
+.pele .mayBreak rect { fill: var(--warning-surface, #fff3e6) !important;
+  stroke: var(--warning, #e8730c) !important; stroke-width: 2.5px !important; }
+.pele .mayBreak text { fill: var(--warning, #b85a06) !important; }
+.pele .bugPath rect { stroke: var(--info, #1680f3) !important; stroke-width: 2.5px !important; }
+.pele .repeats rect { stroke: var(--chart-3, #9b35d6) !important; stroke-width: 2.5px !important; stroke-dasharray: 6 3; }
+@media (prefers-color-scheme: dark) {
+ .pele { --pele-fg: var(--foreground, #f5f5f5); --pele-muted: var(--muted-foreground, #acacac);
+   --pele-line: var(--muted-foreground, #939393); --pele-surface: var(--card, #121212);
+   --pele-surface-alt: var(--secondary, #2c2c2c); --pele-border: var(--border, #4e4e4e); }
+ .pele .blue rect { fill: color-mix(in srgb, var(--info, #1b3857) 20%, var(--card, #121212)); }
+ .pele .teal rect { fill: color-mix(in srgb, var(--success, #174641) 20%, var(--card, #121212)); }
+ .pele .orange rect { fill: color-mix(in srgb, var(--warning, #573117) 20%, var(--card, #121212)); }
+ .pele .breaks rect { fill: var(--destructive-surface, #2e2021) !important; }
+ .pele .breaks text { fill: var(--destructive, #ff6463) !important; }
+}
+</style><text class="pele-title" font-weight="var(--_tw)" text-anchor="middle" xml:space="preserve"><tspan x="319" y="25.6">Copy pixels into storage that survives window closure</tspan></text><g transform="translate(0,36)"><g class="pele-clusters"><g class="pele-cluster pele-state-composite" data-id="legend"><rect x="249.06" y="8" width="380.51" height="112" rx="10" fill="var(--_a)" fill-opacity="0.5" stroke="var(--_b)"/><path d="M249.06,44H629.57" fill="none" stroke="var(--_b)"/><text class="pele-cluster-label" x="439.32" y="31.6" text-anchor="middle">Legend</text></g></g><g class="pele-edges" fill="none" stroke="var(--_l)" stroke-linecap="round"><g class="pele-edge pele-transition" data-id="edge0"><path d="M202.06,120L202.06,157"/><path class="pele-marker" d="M202.06,164L198.7,156L205.42,156Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge1"><path d="M170.92,208C170.92,242.5 92.03,242.5 92.03,277L92.03,383"/><path class="pele-marker" d="M92.03,390L88.67,382L95.39,382Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge2"><path d="M233.2,208C233.2,217.25 295.03,217.25 295.03,226.5L295.03,270"/><path class="pele-marker" d="M295.03,277L291.67,269L298.39,269Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge3"><path d="M242.55,321C242.55,330.25 149.99,330.25 149.99,339.5L149.99,383"/><path class="pele-marker" d="M149.99,390L146.63,382L153.35,382Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge4"><path d="M360.18,321L360.18,392"/><path class="pele-marker" d="M360.18,399L356.82,391L363.54,391Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge5"><path d="M360.18,443L360.18,514"/><path class="pele-marker" d="M360.18,521L356.82,513L363.54,513Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge6"><path d="M360.18,565L360.18,627"/><path class="pele-marker" d="M360.18,634L356.82,626L363.54,626Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge7"><path d="M360.18,678L360.18,740"/><path class="pele-marker" d="M360.18,747L356.82,739L363.54,739Z" fill="var(--_l)" stroke="none"/></g></g><g class="pele-edge-labels" font-size="14"><g class="pele-edge-label" data-id="edge1"><rect x="40.57" y="288.5" width="102.92" height="21" rx="3" fill="var(--_bg)"/><text x="92.03" y="303.9" text-anchor="middle">acquisition fails</text></g><g class="pele-edge-label" data-id="edge2"><rect x="228.78" y="228.5" width="132.49" height="21" rx="3" fill="var(--_bg)"/><text x="295.03" y="243.9" text-anchor="middle">acquire client image</text></g><g class="pele-edge-label" data-id="edge3"><rect x="102.03" y="341.5" width="95.92" height="21" rx="3" fill="var(--_bg)"/><text x="149.99" y="356.9" text-anchor="middle">validation fails</text></g><g class="pele-edge-label" data-id="edge4"><rect x="297.83" y="341.5" width="124.7" height="21" rx="3" fill="var(--_bg)"/><text x="360.18" y="356.9" text-anchor="middle">allocate pixel array</text></g><g class="pele-edge-label" data-id="edge5"><rect x="299.38" y="472.5" width="121.6" height="21" rx="3" fill="var(--_bg)"/><text x="360.18" y="487.9" text-anchor="middle">clear pixel storage</text></g><g class="pele-edge-label" data-id="edge6"><rect x="293.94" y="585.5" width="132.49" height="21" rx="3" fill="var(--_bg)"/><text x="360.18" y="600.9" text-anchor="middle">release client image</text></g><g class="pele-edge-label" data-id="edge7"><rect x="272.13" y="698.5" width="176.1" height="21" rx="3" fill="var(--_bg)"/><text x="360.18" y="713.9" text-anchor="middle">return independent capture</text></g></g><g class="pele-nodes"><g class="pele-node pele-state blue" data-id="s0" transform="translate(202.06,186)"><rect x="-83.14" y="-22" width="166.27" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">No image acquired</text></g><g class="pele-node pele-state orange" data-id="s1" transform="translate(100.03,421)"><rect x="-92.03" y="-31" width="184.06" height="62" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" text-anchor="middle" xml:space="preserve"><tspan x="0" y="-4.9">Capture failed, image</tspan><tspan x="0" y="16.1">released</tspan></text></g><g class="pele-node pele-state blue" data-id="s2" transform="translate(295.03,299)"><rect x="-104.47" y="-22" width="208.94" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Temporary image owned</text></g><g class="pele-node pele-state blue" data-id="s3" transform="translate(360.18,421)"><rect x="-88.02" y="-22" width="176.05" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Pixel array allocated</text></g><g class="pele-node pele-state blue" data-id="s4" transform="translate(360.18,543)"><rect x="-88.91" y="-22" width="177.82" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Copying client pixels</text></g><g class="pele-node pele-state blue" data-id="s5" transform="translate(360.18,656)"><rect x="-111.58" y="-22" width="223.17" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Temporary image released</text></g><g class="pele-node pele-state teal" data-id="s6" transform="translate(360.18,778)"><rect x="-89.38" y="-31" width="178.77" height="62" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" text-anchor="middle" xml:space="preserve"><tspan x="0" y="-4.9">Independent capture</tspan><tspan x="0" y="16.1">returned</tspan></text></g><g class="pele-node pele-state-start" data-id="root_start" transform="translate(202.06,113)"><circle r="7" fill="var(--_l)"/></g><g class="pele-node pele-state teal" data-id="lg0" transform="translate(308.63,82)"><rect x="-43.57" y="-22" width="87.14" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">finished</text></g><g class="pele-node pele-state blue" data-id="lg1" transform="translate(447.76,82)"><rect x="-55.57" y="-22" width="111.14" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">in progress</text></g><g class="pele-node pele-state orange" data-id="lg2" transform="translate(578.45,82)"><rect x="-35.12" y="-22" width="70.24" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">failed</text></g></g></g></svg></div>
+    <details class="source"><summary>Mermaid source</summary><pre><code class="language-mermaid">---
+title: &quot;Copy pixels into storage that survives window closure&quot;
+---
+stateDiagram-v2
+  state &quot;Legend&quot; as legend {
+    lg0: finished
+    lg1: in progress
+    lg2: failed
+  }
+  class lg0 teal
+  class lg1 blue
+  class lg2 orange
+  s0: No image acquired
+  s1: Capture failed, image released
+  s2: Temporary image owned
+  s3: Pixel array allocated
+  s4: Copying client pixels
+  s5: Temporary image released
+  s6: Independent capture returned
+  [*] --&gt; s0
+  s0 --&gt; s1: acquisition fails
+  s0 --&gt; s2: acquire client image
+  s2 --&gt; s1: validation fails
+  s2 --&gt; s3: allocate pixel array
+  s3 --&gt; s4: clear pixel storage
+  s4 --&gt; s5: release client image
+  s5 --&gt; s6: return independent capture
+  class s0 blue
+  class s1 orange
+  class s2 blue
+  class s3 blue
+  class s4 blue
+  class s5 blue
+  class s6 teal
+</code></pre></details></details><details><summary>Effect registration</summary>
+  <div class="chart-tools"><button data-zoom="in">Zoom in</button><button data-zoom="fit">Fit</button><span>Scroll to pan when enlarged.</span></div>
+    <div class="diagram compact"><svg xmlns="http://www.w3.org/2000/svg" class="pele pele-state" viewBox="0 0 568 496" width="568" height="496" style="max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_tw:var(--pele-title-weight,bold);--_fm:var(--pele-font-mono,monospace);font:16px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,sans-serif)" fill="var(--_fg)" role="graphics-document document" aria-roledescription="state"><style>
+.pele { --pele-bg: transparent; --pele-fg: var(--foreground, #1c1c1c);
+  --pele-muted: var(--muted-foreground, #656565); --pele-line: var(--muted-foreground, #808080);
+  --pele-surface: var(--card, #fcfcfc); --pele-surface-alt: var(--secondary, #f1f1f1);
+  --pele-border: var(--border, #c9c9c9); --pele-font: var(--font-sans, sans-serif); }
+.pele .blue rect { fill: color-mix(in srgb, var(--info, #c3e0ff) 20%, var(--card, #ffffff)); }
+.pele .teal rect { fill: color-mix(in srgb, var(--success, #bfe3df) 20%, var(--card, #ffffff)); }
+.pele .orange rect { fill: color-mix(in srgb, var(--warning, #f0d3bf) 20%, var(--card, #ffffff)); }
+.pele .breaks rect { fill: var(--destructive-surface, #ffecee) !important;
+  stroke: var(--destructive, #e72e3b) !important; stroke-width: 2.5px !important; }
+.pele .breaks text { fill: var(--destructive, #cd2834) !important; }
+.pele .mayBreak rect { fill: var(--warning-surface, #fff3e6) !important;
+  stroke: var(--warning, #e8730c) !important; stroke-width: 2.5px !important; }
+.pele .mayBreak text { fill: var(--warning, #b85a06) !important; }
+.pele .bugPath rect { stroke: var(--info, #1680f3) !important; stroke-width: 2.5px !important; }
+.pele .repeats rect { stroke: var(--chart-3, #9b35d6) !important; stroke-width: 2.5px !important; stroke-dasharray: 6 3; }
+@media (prefers-color-scheme: dark) {
+ .pele { --pele-fg: var(--foreground, #f5f5f5); --pele-muted: var(--muted-foreground, #acacac);
+   --pele-line: var(--muted-foreground, #939393); --pele-surface: var(--card, #121212);
+   --pele-surface-alt: var(--secondary, #2c2c2c); --pele-border: var(--border, #4e4e4e); }
+ .pele .blue rect { fill: color-mix(in srgb, var(--info, #1b3857) 20%, var(--card, #121212)); }
+ .pele .teal rect { fill: color-mix(in srgb, var(--success, #174641) 20%, var(--card, #121212)); }
+ .pele .orange rect { fill: color-mix(in srgb, var(--warning, #573117) 20%, var(--card, #121212)); }
+ .pele .breaks rect { fill: var(--destructive-surface, #2e2021) !important; }
+ .pele .breaks text { fill: var(--destructive, #ff6463) !important; }
+}
+</style><text class="pele-title" font-weight="var(--_tw)" text-anchor="middle" xml:space="preserve"><tspan x="284" y="25.6">Load the capture module before dispatching its effect</tspan></text><g transform="translate(0,36)"><g class="pele-clusters"><g class="pele-cluster pele-state-composite" data-id="legend"><rect x="289.31" y="8" width="270.27" height="112" rx="10" fill="var(--_a)" fill-opacity="0.5" stroke="var(--_b)"/><path d="M289.31,44H559.58" fill="none" stroke="var(--_b)"/><text class="pele-cluster-label" x="424.45" y="31.6" text-anchor="middle">Legend</text></g></g><g class="pele-edges" fill="none" stroke="var(--_l)" stroke-linecap="round"><g class="pele-edge pele-transition" data-id="edge0"><path d="M242.31,120L242.31,157"/><path class="pele-marker" d="M242.31,164L238.95,156L245.67,156Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge1"><path d="M242.31,208L242.31,270"/><path class="pele-marker" d="M242.31,277L238.95,269L245.67,269Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge2"><path d="M183.16,321C183.16,330.25 114.71,330.25 114.71,339.5L114.71,383"/><path class="pele-marker" d="M114.71,390L111.35,382L118.07,382Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge3"><path d="M301.46,321C301.46,330.25 369.91,330.25 369.91,339.5L369.91,383"/><path class="pele-marker" d="M369.91,390L366.55,382L373.27,382Z" fill="var(--_l)" stroke="none"/></g></g><g class="pele-edge-labels" font-size="14"><g class="pele-edge-label" data-id="edge1"><rect x="176.84" y="228.5" width="130.93" height="21" rx="3" fill="var(--_bg)"/><text x="242.31" y="243.9" text-anchor="middle">initialize the module</text></g><g class="pele-edge-label" data-id="edge2"><rect x="17.74" y="341.5" width="193.95" height="21" rx="3" fill="var(--_bg)"/><text x="114.71" y="356.9" text-anchor="middle">return ENOTSUP and window</text></g><g class="pele-edge-label" data-id="edge3"><rect x="309.88" y="341.5" width="120.06" height="21" rx="3" fill="var(--_bg)"/><text x="369.91" y="356.9" text-anchor="middle">run native capture</text></g></g><g class="pele-nodes"><g class="pele-node pele-state blue" data-id="s0" transform="translate(242.31,186)"><rect x="-70.25" y="-22" width="140.5" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Module loading</text></g><g class="pele-node pele-state blue" data-id="s1" transform="translate(242.31,299)"><rect x="-111.15" y="-22" width="222.3" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Capture handler registered</text></g><g class="pele-node pele-state teal" data-id="s2" transform="translate(114.71,421)"><rect x="-106.71" y="-31" width="213.42" height="62" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" text-anchor="middle" xml:space="preserve"><tspan x="0" y="-4.9">Window and unsupported</tspan><tspan x="0" y="16.1">error returned</tspan></text></g><g class="pele-node pele-state teal" data-id="s3" transform="translate(369.91,412)"><rect x="-108.49" y="-22" width="216.98" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Native capture dispatched</text></g><g class="pele-node pele-state-start" data-id="root_start" transform="translate(242.31,113)"><circle r="7" fill="var(--_l)"/></g><g class="pele-node pele-state teal" data-id="lg0" transform="translate(348.88,82)"><rect x="-43.57" y="-22" width="87.14" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">finished</text></g><g class="pele-node pele-state blue" data-id="lg1" transform="translate(488.02,82)"><rect x="-55.57" y="-22" width="111.14" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">in progress</text></g></g></g></svg></div>
+    <details class="source"><summary>Mermaid source</summary><pre><code class="language-mermaid">---
+title: &quot;Load the capture module before dispatching its effect&quot;
+---
+stateDiagram-v2
+  state &quot;Legend&quot; as legend {
+    lg0: finished
+    lg1: in progress
+  }
+  class lg0 teal
+  class lg1 blue
+  s0: Module loading
+  s1: Capture handler registered
+  s2: Window and unsupported error returned
+  s3: Native capture dispatched
+  [*] --&gt; s0
+  s0 --&gt; s1: initialize the module
+  s1 --&gt; s2: return ENOTSUP and window
+  s1 --&gt; s3: run native capture
+  class s0 blue
+  class s1 blue
+  class s2 teal
+  class s3 teal
+</code></pre></details></details><details><summary>Check runner</summary>
+  <div class="chart-tools"><button data-zoom="in">Zoom in</button><button data-zoom="fit">Fit</button><span>Scroll to pan when enlarged.</span></div>
+    <div class="diagram compact"><svg xmlns="http://www.w3.org/2000/svg" class="pele pele-state" viewBox="0 0 659 1043" width="659" height="1043" style="max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_tw:var(--pele-title-weight,bold);--_fm:var(--pele-font-mono,monospace);font:16px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,sans-serif)" fill="var(--_fg)" role="graphics-document document" aria-roledescription="state"><style>
+.pele { --pele-bg: transparent; --pele-fg: var(--foreground, #1c1c1c);
+  --pele-muted: var(--muted-foreground, #656565); --pele-line: var(--muted-foreground, #808080);
+  --pele-surface: var(--card, #fcfcfc); --pele-surface-alt: var(--secondary, #f1f1f1);
+  --pele-border: var(--border, #c9c9c9); --pele-font: var(--font-sans, sans-serif); }
+.pele .blue rect { fill: color-mix(in srgb, var(--info, #c3e0ff) 20%, var(--card, #ffffff)); }
+.pele .teal rect { fill: color-mix(in srgb, var(--success, #bfe3df) 20%, var(--card, #ffffff)); }
+.pele .orange rect { fill: color-mix(in srgb, var(--warning, #f0d3bf) 20%, var(--card, #ffffff)); }
+.pele .breaks rect { fill: var(--destructive-surface, #ffecee) !important;
+  stroke: var(--destructive, #e72e3b) !important; stroke-width: 2.5px !important; }
+.pele .breaks text { fill: var(--destructive, #cd2834) !important; }
+.pele .mayBreak rect { fill: var(--warning-surface, #fff3e6) !important;
+  stroke: var(--warning, #e8730c) !important; stroke-width: 2.5px !important; }
+.pele .mayBreak text { fill: var(--warning, #b85a06) !important; }
+.pele .bugPath rect { stroke: var(--info, #1680f3) !important; stroke-width: 2.5px !important; }
+.pele .repeats rect { stroke: var(--chart-3, #9b35d6) !important; stroke-width: 2.5px !important; stroke-dasharray: 6 3; }
+@media (prefers-color-scheme: dark) {
+ .pele { --pele-fg: var(--foreground, #f5f5f5); --pele-muted: var(--muted-foreground, #acacac);
+   --pele-line: var(--muted-foreground, #939393); --pele-surface: var(--card, #121212);
+   --pele-surface-alt: var(--secondary, #2c2c2c); --pele-border: var(--border, #4e4e4e); }
+ .pele .blue rect { fill: color-mix(in srgb, var(--info, #1b3857) 20%, var(--card, #121212)); }
+ .pele .teal rect { fill: color-mix(in srgb, var(--success, #174641) 20%, var(--card, #121212)); }
+ .pele .orange rect { fill: color-mix(in srgb, var(--warning, #573117) 20%, var(--card, #121212)); }
+ .pele .breaks rect { fill: var(--destructive-surface, #2e2021) !important; }
+ .pele .breaks text { fill: var(--destructive, #ff6463) !important; }
+}
+</style><text class="pele-title" font-weight="var(--_tw)" text-anchor="middle" xml:space="preserve"><tspan x="329.5" y="25.6">Clean up temporary files after every ordinary check exit</tspan></text><g transform="translate(0,36)"><g class="pele-clusters"><g class="pele-cluster pele-state-composite" data-id="legend"><rect x="282.56" y="8" width="143.14" height="112" rx="10" fill="var(--_a)" fill-opacity="0.5" stroke="var(--_b)"/><path d="M282.56,44H425.7" fill="none" stroke="var(--_b)"/><text class="pele-cluster-label" x="354.13" y="31.6" text-anchor="middle">Legend</text></g></g><g class="pele-edges" fill="none" stroke="var(--_l)" stroke-linecap="round"><g class="pele-edge pele-transition" data-id="edge0"><path d="M235.56,120L235.56,157"/><path class="pele-marker" d="M235.56,164L232.2,156L238.92,156Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge1"><path d="M183.52,208C183.52,242.5 44.35,242.5 44.35,277L44.35,773C44.35,801 258.41,801 258.41,829L258.41,835"/><path class="pele-marker" d="M258.41,842L255.05,834L261.77,834Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge2"><path d="M305.11,208L305.11,270"/><path class="pele-marker" d="M305.11,277L301.75,269L308.47,269Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge3"><path d="M290.41,886L290.41,948"/><path class="pele-marker" d="M290.41,955L287.05,947L293.77,947Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge4"><path d="M216.39,321L216.39,773C216.39,801 274.41,801 274.41,829L274.41,835"/><path class="pele-marker" d="M274.41,842L271.05,834L277.77,834Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge5"><path d="M393.83,321L393.83,383"/><path class="pele-marker" d="M393.83,390L390.47,382L397.19,382Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge6"><path d="M393.83,434L393.83,496"/><path class="pele-marker" d="M393.83,503L390.47,495L397.19,495Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge7"><path d="M375.14,547C375.14,581.5 290.41,581.5 290.41,616L290.41,835"/><path class="pele-marker" d="M290.41,842L287.05,834L293.77,834Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge8"><path d="M412.51,547C412.51,556.25 470.76,556.25 470.76,565.5L470.76,609"/><path class="pele-marker" d="M470.76,616L467.4,608L474.12,608Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge9"><path d="M441.41,660C441.41,694.5 393.6,694.5 393.6,729L393.6,773C393.6,801 306.41,801 306.41,829L306.41,835"/><path class="pele-marker" d="M306.41,842L303.05,834L309.77,834Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge10"><path d="M500.11,660C500.11,669.25 547.92,669.25 547.92,678.5L547.92,722"/><path class="pele-marker" d="M547.92,729L544.56,721L551.28,721Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge11"><path d="M547.92,773L547.92,816.5C547.92,819.97 322.41,826.91 322.41,830.38L322.41,835"/><path class="pele-marker" d="M322.41,842L319.05,834L325.77,834Z" fill="var(--_l)" stroke="none"/></g></g><g class="pele-edge-labels" font-size="14"><g class="pele-edge-label" data-id="edge1"><rect x="10" y="514.5" width="68.69" height="21" rx="3" fill="var(--_bg)"/><text x="44.35" y="529.9" text-anchor="middle">proof fails</text></g><g class="pele-edge-label" data-id="edge2"><rect x="261.03" y="228.5" width="88.15" height="21" rx="3" fill="var(--_bg)"/><text x="305.11" y="243.9" text-anchor="middle">proof passes</text></g><g class="pele-edge-label" data-id="edge3"><rect x="236.99" y="906.5" width="106.83" height="21" rx="3" fill="var(--_bg)"/><text x="290.41" y="921.9" text-anchor="middle">run exit cleanup</text></g><g class="pele-edge-label" data-id="edge4"><rect x="139.65" y="514.5" width="153.49" height="21" rx="3" fill="var(--_bg)"/><text x="216.39" y="529.9" text-anchor="middle">directory allocation fails</text></g><g class="pele-edge-label" data-id="edge5"><rect x="308.14" y="341.5" width="171.38" height="21" rx="3" fill="var(--_bg)"/><text x="393.83" y="356.9" text-anchor="middle">create temporary directory</text></g><g class="pele-edge-label" data-id="edge6"><rect x="327.19" y="454.5" width="133.27" height="21" rx="3" fill="var(--_bg)"/><text x="393.83" y="469.9" text-anchor="middle">register exit cleanup</text></g><g class="pele-edge-label" data-id="edge7"><rect x="247.89" y="627.5" width="85.03" height="21" rx="3" fill="var(--_bg)"/><text x="290.41" y="642.9" text-anchor="middle">a check fails</text></g><g class="pele-edge-label" data-id="edge8"><rect x="414.24" y="567.5" width="113.03" height="21" rx="3" fill="var(--_bg)"/><text x="470.76" y="582.9" text-anchor="middle">compile example</text></g><g class="pele-edge-label" data-id="edge9"><rect x="351.08" y="740.5" width="85.03" height="21" rx="3" fill="var(--_bg)"/><text x="393.6" y="755.9" text-anchor="middle">a check fails</text></g><g class="pele-edge-label" data-id="edge10"><rect x="491.01" y="680.5" width="113.83" height="21" rx="3" fill="var(--_bg)"/><text x="547.92" y="695.9" text-anchor="middle">execute example</text></g><g class="pele-edge-label" data-id="edge11"><rect x="447.43" y="793.5" width="200.98" height="21" rx="3" fill="var(--_bg)"/><text x="547.92" y="808.9" text-anchor="middle">a check fails or output matches</text></g></g><g class="pele-nodes"><g class="pele-node pele-state blue" data-id="s0" transform="translate(235.56,186)"><rect x="-104.05" y="-22" width="208.1" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Checking the Bend proof</text></g><g class="pele-node pele-state blue" data-id="s1" transform="translate(290.41,864)"><rect x="-61.79" y="-22" width="123.58" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Script exiting</text></g><g class="pele-node pele-state blue" data-id="s2" transform="translate(305.11,299)"><rect x="-104.92" y="-22" width="209.84" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Creating a build directory</text></g><g class="pele-node pele-state" data-id="s3" transform="translate(290.41,977)"><rect x="-100.02" y="-22" width="200.05" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Build directory removed</text></g><g class="pele-node pele-state blue" data-id="s4" transform="translate(393.83,412)"><rect x="-89.35" y="-22" width="178.7" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Build directory exists</text></g><g class="pele-node pele-state blue" data-id="s5" transform="translate(393.83,525)"><rect x="-70.69" y="-22" width="141.38" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Cleanup armed</text></g><g class="pele-node pele-state blue" data-id="s6" transform="translate(470.76,638)"><rect x="-81.35" y="-22" width="162.7" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Example compiled</text></g><g class="pele-node pele-state blue" data-id="s7" transform="translate(547.92,751)"><rect x="-81.81" y="-22" width="163.62" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Example executed</text></g><g class="pele-node pele-state-start" data-id="root_start" transform="translate(235.56,113)"><circle r="7" fill="var(--_l)"/></g><g class="pele-node pele-state blue" data-id="lg0" transform="translate(354.13,82)"><rect x="-55.57" y="-22" width="111.14" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">in progress</text></g></g></g></svg></div>
+    <details class="source"><summary>Mermaid source</summary><pre><code class="language-mermaid">---
+title: &quot;Clean up temporary files after every ordinary check exit&quot;
+---
+stateDiagram-v2
+  state &quot;Legend&quot; as legend {
+    lg0: in progress
+  }
+  class lg0 blue
+  s0: Checking the Bend proof
+  s1: Script exiting
+  s2: Creating a build directory
+  s3: Build directory removed
+  s4: Build directory exists
+  s5: Cleanup armed
+  s6: Example compiled
+  s7: Example executed
+  [*] --&gt; s0
+  s0 --&gt; s1: proof fails
+  s0 --&gt; s2: proof passes
+  s1 --&gt; s3: run exit cleanup
+  s2 --&gt; s1: directory allocation fails
+  s2 --&gt; s4: create temporary directory
+  s4 --&gt; s5: register exit cleanup
+  s5 --&gt; s1: a check fails
+  s5 --&gt; s6: compile example
+  s6 --&gt; s1: a check fails
+  s6 --&gt; s7: execute example
+  s7 --&gt; s1: a check fails or output matches
+  class s0 blue
+  class s1 blue
+  class s2 blue
+  class s4 blue
+  class s5 blue
+  class s6 blue
+  class s7 blue
+</code></pre></details></details></details>
+<details><summary>Verification evidence and scope</summary><table><thead><tr><th>Subsystem</th><th>Model states</th><th>Source cases</th><th>Mutations caught</th></tr></thead><tbody><tr><td>Window lifecycle</td><td>10</td><td>3</td><td>1</td></tr><tr><td>Capture decisions</td><td>49</td><td>25</td><td>1</td></tr><tr><td>X11 error handling</td><td>54</td><td>25</td><td>3</td></tr><tr><td>Pixel ownership</td><td>59</td><td>30</td><td>4</td></tr><tr><td>Effect registration</td><td>9</td><td>5</td><td>2</td></tr><tr><td>Check runner</td><td>12</td><td>5</td><td>1</td></tr></tbody></table>
+<p class="note">9 source mutations have matching TLA+ counterexamples. 3 additional source checks corrupt row placement, color, or synchronization order. The source checks execute real Bend and C control flow with controlled X11 effects; they do not prove all C inputs.</p>
+<pre><code>python3 verification/verify.py all --mutations</code></pre></details>
+<details><summary>9 deliberately broken models and their shortest failure paths</summary><p class="note">These counterexamples are negative controls. Current-code models pass.</p><details><summary>Capture decisions · SkipResizeCheck</summary>
+    <pre># CaptureTransaction
+
+TLC reached 50 states and 92 steps. The chart draws 12 states and 18 arrows.
+The chart does not draw 37 steps that stay in one chart state.
+
+## OnlyValidatedCaptureSucceeds breaks
+The shortest path has 6 steps:
+0. Capture requested
+1. native backend available: Finishing drawing
+2. drawing is synchronized: Checking the window
+3. window passes initial checks: Reading pixels
+4. pixels are available: Checking for changes
+5. client changes during readback: Changed snapshot accepted
+6. return snapshot and window: Invalid snapshot returned
+
+## Rules that hold
+NoDeadlock
+</pre><div class="chart-tools"><button data-zoom="in">Zoom in</button><button data-zoom="fit">Fit</button><span>Scroll to pan when enlarged.</span></div>
+    <div class="diagram compact"><svg xmlns="http://www.w3.org/2000/svg" class="pele pele-state" viewBox="0 0 1610 1079" width="1610" height="1079" style="max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_tw:var(--pele-title-weight,bold);--_fm:var(--pele-font-mono,monospace);font:16px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,sans-serif)" fill="var(--_fg)" role="graphics-document document" aria-roledescription="state"><style>
+.pele { --pele-bg: transparent; --pele-fg: var(--foreground, #1c1c1c);
+  --pele-muted: var(--muted-foreground, #656565); --pele-line: var(--muted-foreground, #808080);
+  --pele-surface: var(--card, #fcfcfc); --pele-surface-alt: var(--secondary, #f1f1f1);
+  --pele-border: var(--border, #c9c9c9); --pele-font: var(--font-sans, sans-serif); }
+.pele .blue rect { fill: color-mix(in srgb, var(--info, #c3e0ff) 20%, var(--card, #ffffff)); }
+.pele .teal rect { fill: color-mix(in srgb, var(--success, #bfe3df) 20%, var(--card, #ffffff)); }
+.pele .orange rect { fill: color-mix(in srgb, var(--warning, #f0d3bf) 20%, var(--card, #ffffff)); }
+.pele .breaks rect { fill: var(--destructive-surface, #ffecee) !important;
+  stroke: var(--destructive, #e72e3b) !important; stroke-width: 2.5px !important; }
+.pele .breaks text { fill: var(--destructive, #cd2834) !important; }
+.pele .mayBreak rect { fill: var(--warning-surface, #fff3e6) !important;
+  stroke: var(--warning, #e8730c) !important; stroke-width: 2.5px !important; }
+.pele .mayBreak text { fill: var(--warning, #b85a06) !important; }
+.pele .bugPath rect { stroke: var(--info, #1680f3) !important; stroke-width: 2.5px !important; }
+.pele .repeats rect { stroke: var(--chart-3, #9b35d6) !important; stroke-width: 2.5px !important; stroke-dasharray: 6 3; }
+@media (prefers-color-scheme: dark) {
+ .pele { --pele-fg: var(--foreground, #f5f5f5); --pele-muted: var(--muted-foreground, #acacac);
+   --pele-line: var(--muted-foreground, #939393); --pele-surface: var(--card, #121212);
+   --pele-surface-alt: var(--secondary, #2c2c2c); --pele-border: var(--border, #4e4e4e); }
+ .pele .blue rect { fill: color-mix(in srgb, var(--info, #1b3857) 20%, var(--card, #121212)); }
+ .pele .teal rect { fill: color-mix(in srgb, var(--success, #174641) 20%, var(--card, #121212)); }
+ .pele .orange rect { fill: color-mix(in srgb, var(--warning, #573117) 20%, var(--card, #121212)); }
+ .pele .breaks rect { fill: var(--destructive-surface, #2e2021) !important; }
+ .pele .breaks text { fill: var(--destructive, #ff6463) !important; }
+}
+</style><text class="pele-title" font-weight="var(--_tw)" text-anchor="middle" xml:space="preserve"><tspan x="805" y="25.6">Capture success and failures that return your window</tspan></text><g transform="translate(0,36)"><g class="pele-clusters"><g class="pele-cluster pele-state-composite" data-id="legend"><rect x="401.59" y="8" width="978.05" height="151" rx="10" fill="var(--_a)" fill-opacity="0.5" stroke="var(--_b)"/><path d="M401.59,44H1379.64" fill="none" stroke="var(--_b)"/><text class="pele-cluster-label" x="890.61" y="31.6" text-anchor="middle">Legend</text></g></g><g class="pele-edges" fill="none" stroke="var(--_l)" stroke-linecap="round"><g class="pele-edge pele-transition" data-id="edge0"><path d="M354.59,159L354.59,196"/><path class="pele-marker" d="M354.59,203L351.23,195L357.95,195Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge1"><path d="M324.33,247C324.33,281.5 77.81,281.5 77.81,316L77.81,830C77.81,894.75 209.38,894.75 209.38,959.5L209.38,965.5"/><path class="pele-marker" d="M209.38,972.5L206.02,964.5L212.74,964.5Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge2"><path d="M384.84,247C384.84,256.25 448.17,256.25 448.17,265.5L448.17,309"/><path class="pele-marker" d="M448.17,316L444.81,308L451.53,308Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge3"><path d="M421.93,360C421.93,369.25 345.88,369.25 345.88,378.5L345.88,422"/><path class="pele-marker" d="M345.88,429L342.52,421L349.24,421Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge4"><path d="M474.41,360C474.41,394.5 550.46,394.5 550.46,429L550.46,623.25C550.46,632.63 445.93,632.63 445.93,642L445.93,648"/><path class="pele-marker" d="M445.93,655L442.57,647L449.29,647Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge5"><path d="M306.3,473C306.3,507.5 248.98,507.5 248.98,542L248.98,623.25C248.98,632.58 399.66,632.67 399.66,642L399.66,648"/><path class="pele-marker" d="M399.66,655L396.3,647L403.02,647Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge6"><path d="M385.47,473C385.47,482.25 430.79,482.25 430.79,491.5L430.79,535"/><path class="pele-marker" d="M430.79,542L427.43,534L434.15,534Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge7"><path d="M445.93,699C445.93,733.5 581,733.5 581,768L581,940.75C581,948.13 771.6,952.12 771.6,959.5L771.6,965.5"/><path class="pele-marker" d="M771.6,972.5L768.24,964.5L774.96,964.5Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge8"><path d="M399.66,699C399.66,733.5 229.35,733.5 229.35,768L229.35,965.5"/><path class="pele-marker" d="M229.35,972.5L225.99,964.5L232.71,964.5Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge9"><path d="M422.79,586L422.79,648"/><path class="pele-marker" d="M422.79,655L419.43,647L426.15,647Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge10"><path d="M447.26,586C447.26,590.63 1008.13,599.88 1008.13,604.5L1008.13,648"/><path class="pele-marker" d="M1008.13,655L1004.77,647L1011.49,647Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge11"><path d="M966.76,699C966.76,708.25 881.47,708.25 881.47,717.5L881.47,770"/><path class="pele-marker" d="M881.47,777L878.11,769L884.83,769Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge12"><path d="M1049.5,699C1049.5,708.25 1105.11,708.25 1105.11,717.5L1105.11,761"/><path class="pele-marker" d="M1105.11,768L1101.75,760L1108.47,760Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge13"><path d="M913.51,821C913.51,858.82 978.48,882 1084.47,882C1190.46,882 1255.42,897.2 1255.42,922L1255.42,965.5"/><path class="pele-marker" d="M1255.42,972.5L1252.06,964.5L1258.78,964.5Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge14"><path d="M849.42,821L849.42,870C849.42,896 833.41,896 833.41,922L833.41,965.5"/><path class="pele-marker" d="M833.41,972.5L830.05,964.5L836.77,964.5Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge15"><path d="M833.42,821C833.42,843.94 735.35,858 575.34,858C415.33,858 317.26,882.32 317.26,922L317.26,947C317.26,953.94 313.58,953.94 313.58,960.88L313.58,965.5"/><path class="pele-marker" d="M313.58,972.5L310.22,964.5L316.94,964.5Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge16"><path d="M1136.27,830C1136.27,847.36 1204.52,858 1315.89,858C1427.25,858 1495.51,882.32 1495.51,922L1495.51,965.5"/><path class="pele-marker" d="M1495.51,972.5L1492.15,964.5L1498.87,964.5Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge17"><path d="M1072.12,830L1072.12,882C1072.12,902 1054.29,902 1054.29,922L1054.29,947C1054.29,951.84 895.21,956.03 895.21,960.88L895.21,965.5"/><path class="pele-marker" d="M895.21,972.5L891.85,964.5L898.57,964.5Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge18"><path d="M1056.12,830C1056.12,854.8 949.15,870 774.61,870C600.07,870 493.09,889.76 493.09,922L493.09,947C493.09,951.71 329.58,956.17 329.58,960.88L329.58,965.5"/><path class="pele-marker" d="M329.58,972.5L326.22,964.5L332.94,964.5Z" fill="var(--_l)" stroke="none"/></g></g><g class="pele-edge-labels" font-size="14"><g class="pele-edge-label" data-id="edge1"><rect x="10" y="553.5" width="135.62" height="21" rx="3" fill="var(--_bg)"/><text x="77.81" y="568.9" text-anchor="middle">backend unavailable</text></g><g class="pele-edge-label" data-id="edge2"><rect x="367.52" y="267.5" width="161.3" height="21" rx="3" fill="var(--_bg)"/><text x="448.17" y="282.9" text-anchor="middle">native backend available</text></g><g class="pele-edge-label" data-id="edge3"><rect x="267.19" y="380.5" width="157.38" height="21" rx="3" fill="var(--_bg)"/><text x="345.88" y="395.9" text-anchor="middle">drawing is synchronized</text></g><g class="pele-edge-label" data-id="edge4"><rect x="467.47" y="440.5" width="165.98" height="21" rx="3" fill="var(--_bg)"/><text x="550.46" y="455.9" text-anchor="middle">pending X11 request fails</text></g><g class="pele-edge-label" data-id="edge5"><rect x="165.62" y="553.5" width="166.7" height="21" rx="3" fill="var(--_bg)"/><text x="248.98" y="568.9" text-anchor="middle">window fails initial checks</text></g><g class="pele-edge-label" data-id="edge6"><rect x="337.71" y="493.5" width="186.16" height="21" rx="3" fill="var(--_bg)"/><text x="430.79" y="508.9" text-anchor="middle">window passes initial checks</text></g><g class="pele-edge-label" data-id="edge7"><rect x="491.41" y="788.5" width="179.18" height="21" rx="3" fill="var(--_bg)"/><text x="581" y="803.9" text-anchor="middle">return EAGAIN and window</text></g><g class="pele-edge-label" data-id="edge8"><rect x="151.44" y="788.5" width="155.83" height="21" rx="3" fill="var(--_bg)"/><text x="229.35" y="803.9" text-anchor="middle">return error and window</text></g><g class="pele-edge-label" data-id="edge9"><rect x="328.54" y="606.5" width="188.5" height="21" rx="3" fill="var(--_bg)"/><text x="422.79" y="621.9" text-anchor="middle">readback or color format fails</text></g><g class="pele-edge-label" data-id="edge10"><rect x="944.61" y="606.5" width="127.04" height="21" rx="3" fill="var(--_bg)"/><text x="1008.13" y="621.9" text-anchor="middle">pixels are available</text></g><g class="pele-edge-label" data-id="edge11"><rect x="820.68" y="719.5" width="121.58" height="21" rx="3" fill="var(--_bg)"/><text x="881.47" y="734.9" text-anchor="middle">client still matches</text></g><g class="pele-edge-label" data-id="edge12"><rect x="1004.23" y="719.5" width="201.76" height="21" rx="3" fill="var(--_bg)"/><text x="1105.11" y="734.9" text-anchor="middle">client changes during readback</text></g><g class="pele-edge-label" data-id="edge13"><rect x="1163.88" y="924" width="183.08" height="21" rx="3" fill="var(--_bg)"/><text x="1255.42" y="939.4" text-anchor="middle">return snapshot and window</text></g><g class="pele-edge-label" data-id="edge14"><rect x="743.82" y="924" width="179.18" height="21" rx="3" fill="var(--_bg)"/><text x="833.41" y="939.4" text-anchor="middle">return EAGAIN and window</text></g><g class="pele-edge-label" data-id="edge15"><rect x="239.35" y="924" width="155.83" height="21" rx="3" fill="var(--_bg)"/><text x="317.26" y="939.4" text-anchor="middle">return error and window</text></g><g class="pele-edge-label" data-id="edge16"><rect x="1403.96" y="924" width="183.08" height="21" rx="3" fill="var(--_bg)"/><text x="1495.51" y="939.4" text-anchor="middle">return snapshot and window</text></g><g class="pele-edge-label" data-id="edge17"><rect x="964.7" y="924" width="179.18" height="21" rx="3" fill="var(--_bg)"/><text x="1054.29" y="939.4" text-anchor="middle">return EAGAIN and window</text></g><g class="pele-edge-label" data-id="edge18"><rect x="415.18" y="924" width="155.83" height="21" rx="3" fill="var(--_bg)"/><text x="493.09" y="939.4" text-anchor="middle">return error and window</text></g></g><g class="pele-nodes"><g class="pele-node pele-state blue bugPath" data-id="s0" transform="translate(354.59,225)"><rect x="-82.26" y="-22" width="164.51" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Capture requested</text></g><g class="pele-node pele-state orange" data-id="s1" transform="translate(267.64,994.5)"><rect x="-110.26" y="-22" width="220.51" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Error and window returned</text></g><g class="pele-node pele-state blue bugPath" data-id="s2" transform="translate(448.17,338)"><rect x="-78.24" y="-22" width="156.48" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Finishing drawing</text></g><g class="pele-node pele-state blue bugPath" data-id="s3" transform="translate(345.88,451)"><rect x="-91.58" y="-22" width="183.17" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Checking the window</text></g><g class="pele-node pele-state blue" data-id="s4" transform="translate(422.79,677)"><rect x="-75.14" y="-22" width="150.27" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Capture rejected</text></g><g class="pele-node pele-state orange" data-id="s5" transform="translate(833.41,1003.5)"><rect x="-113.81" y="-31" width="227.62" height="62" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" text-anchor="middle" xml:space="preserve"><tspan x="0" y="-4.9">Retryable error and window</tspan><tspan x="0" y="16.1">returned</tspan></text></g><g class="pele-node pele-state blue bugPath" data-id="s6" transform="translate(430.79,564)"><rect x="-68.46" y="-22" width="136.93" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Reading pixels</text></g><g class="pele-node pele-state blue bugPath" data-id="s7" transform="translate(1008.13,677)"><rect x="-93.37" y="-22" width="186.74" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Checking for changes</text></g><g class="pele-node pele-state blue" data-id="s8" transform="translate(881.47,799)"><rect x="-84.04" y="-22" width="168.08" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Snapshot validated</text></g><g class="pele-node pele-state blue bugPath" data-id="s9" transform="translate(1105.11,799)"><rect x="-83.15" y="-31" width="166.3" height="62" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" text-anchor="middle" xml:space="preserve"><tspan x="0" y="-4.9">Changed snapshot</tspan><tspan x="0" y="16.1">accepted</tspan></text></g><g class="pele-node pele-state teal" data-id="s10" transform="translate(1255.42,1003.5)"><rect x="-94.26" y="-31" width="188.53" height="62" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" text-anchor="middle" xml:space="preserve"><tspan x="0" y="-4.9">Snapshot and window</tspan><tspan x="0" y="16.1">returned</tspan></text></g><g class="pele-node pele-state teal breaks bugPath" data-id="s11" transform="translate(1495.51,994.5)"><rect x="-105.82" y="-22" width="211.65" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)" style="fill:#ffecee;stroke:#e72e3b;stroke-width:2.5px;"/><text class="pele-label" style="fill:#cd2834;" x="0" y="5.6" text-anchor="middle">Invalid snapshot returned</text></g><g class="pele-node pele-state-start" data-id="root_start" transform="translate(354.59,152)"><circle r="7" fill="var(--_l)"/></g><g class="pele-node pele-state teal" data-id="lg0" transform="translate(461.16,101.5)"><rect x="-43.57" y="-22" width="87.14" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">finished</text></g><g class="pele-node pele-state blue" data-id="lg1" transform="translate(600.29,101.5)"><rect x="-55.57" y="-22" width="111.14" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">in progress</text></g><g class="pele-node pele-state orange" data-id="lg2" transform="translate(730.98,101.5)"><rect x="-35.12" y="-22" width="70.24" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">failed</text></g><g class="pele-node pele-state breaks" data-id="lg3" transform="translate(935.48,101.5)"><rect x="-129.38" y="-31" width="258.77" height="62" rx="10" fill="var(--_s)" stroke="var(--_b)" style="fill:#ffecee;stroke:#e72e3b;stroke-width:2.5px;"/><text class="pele-label" style="fill:#cd2834;" text-anchor="middle" xml:space="preserve"><tspan x="0" y="-4.9">Breaks</tspan><tspan x="0" y="16.1">OnlyValidatedCaptureSucceeds</tspan></text></g><g class="pele-node pele-state bugPath" data-id="lg4" transform="translate(1234.25,101.5)"><rect x="-129.38" y="-41.5" width="258.77" height="83" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" text-anchor="middle" xml:space="preserve"><tspan x="0" y="-15.4">Path to the</tspan><tspan x="0" y="5.6">OnlyValidatedCaptureSucceeds</tspan><tspan x="0" y="26.6">bug</tspan></text></g></g></g></svg></div>
+    <details class="source"><summary>Mermaid source</summary><pre><code class="language-mermaid">---
+title: &quot;Capture success and failures that return your window&quot;
+---
+stateDiagram-v2
+  state &quot;Legend&quot; as legend {
+    lg0: finished
+    lg1: in progress
+    lg2: failed
+    lg3: Breaks OnlyValidatedCaptureSucceeds
+    lg4: Path to the OnlyValidatedCaptureSucceeds bug
+  }
+  class lg0 teal
+  class lg1 blue
+  class lg2 orange
+  class lg3 breaks
+  class lg4 bugPath
+  s0: Capture requested
+  s1: Error and window returned
+  s2: Finishing drawing
+  s3: Checking the window
+  s4: Capture rejected
+  s5: Retryable error and window returned
+  s6: Reading pixels
+  s7: Checking for changes
+  s8: Snapshot validated
+  s9: Changed snapshot accepted
+  s10: Snapshot and window returned
+  s11: Invalid snapshot returned
+  [*] --&gt; s0
+  s0 --&gt; s1: backend unavailable
+  s0 --&gt; s2: native backend available
+  s2 --&gt; s3: drawing is synchronized
+  s2 --&gt; s4: pending X11 request fails
+  s3 --&gt; s4: window fails initial checks
+  s3 --&gt; s6: window passes initial checks
+  s4 --&gt; s5: return EAGAIN and window
+  s4 --&gt; s1: return error and window
+  s6 --&gt; s4: readback or color format fails
+  s6 --&gt; s7: pixels are available
+  s7 --&gt; s8: client still matches
+  s7 --&gt; s9: client changes during readback
+  s8 --&gt; s10: return snapshot and window
+  s8 --&gt; s5: return EAGAIN and window
+  s8 --&gt; s1: return error and window
+  s9 --&gt; s11: return snapshot and window
+  s9 --&gt; s5: return EAGAIN and window
+  s9 --&gt; s1: return error and window
+  classDef breaks fill:#ffecee,stroke:#e72e3b,stroke-width:2.5px,color:#cd2834
+  class s0 blue
+  class s0 bugPath
+  class s1 orange
+  class s2 blue
+  class s2 bugPath
+  class s3 blue
+  class s3 bugPath
+  class s4 blue
+  class s5 orange
+  class s6 blue
+  class s6 bugPath
+  class s7 blue
+  class s7 bugPath
+  class s8 blue
+  class s9 blue
+  class s9 bugPath
+  class s10 teal
+  class s11 teal
+  class s11 breaks
+  class s11 bugPath
+</code></pre></details></details><details><summary>Check runner · SkipTrap</summary>
+    <pre># CheckRunner
+
+TLC reached 12 states and 17 steps. The chart draws 9 states and 12 arrows.
+The chart does not draw 3 steps that stay in one chart state.
+
+## ExitCleansBuild breaks
+The shortest path has 5 steps:
+0. Checking the Bend proof
+1. proof passes: Creating a build directory
+2. create temporary directory: Build directory exists
+3. continue without exit cleanup: Cleanup missing
+4. a check fails: Script exiting
+5. exit with the directory still present: Build directory leaked
+
+## Rules that hold
+NoDeadlock
+</pre><div class="chart-tools"><button data-zoom="in">Zoom in</button><button data-zoom="fit">Fit</button><span>Scroll to pan when enlarged.</span></div>
+    <div class="diagram compact"><svg xmlns="http://www.w3.org/2000/svg" class="pele pele-state" viewBox="0 0 1049 1076" width="1049" height="1076" style="max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_tw:var(--pele-title-weight,bold);--_fm:var(--pele-font-mono,monospace);font:16px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,sans-serif)" fill="var(--_fg)" role="graphics-document document" aria-roledescription="state"><style>
+.pele { --pele-bg: transparent; --pele-fg: var(--foreground, #1c1c1c);
+  --pele-muted: var(--muted-foreground, #656565); --pele-line: var(--muted-foreground, #808080);
+  --pele-surface: var(--card, #fcfcfc); --pele-surface-alt: var(--secondary, #f1f1f1);
+  --pele-border: var(--border, #c9c9c9); --pele-font: var(--font-sans, sans-serif); }
+.pele .blue rect { fill: color-mix(in srgb, var(--info, #c3e0ff) 20%, var(--card, #ffffff)); }
+.pele .teal rect { fill: color-mix(in srgb, var(--success, #bfe3df) 20%, var(--card, #ffffff)); }
+.pele .orange rect { fill: color-mix(in srgb, var(--warning, #f0d3bf) 20%, var(--card, #ffffff)); }
+.pele .breaks rect { fill: var(--destructive-surface, #ffecee) !important;
+  stroke: var(--destructive, #e72e3b) !important; stroke-width: 2.5px !important; }
+.pele .breaks text { fill: var(--destructive, #cd2834) !important; }
+.pele .mayBreak rect { fill: var(--warning-surface, #fff3e6) !important;
+  stroke: var(--warning, #e8730c) !important; stroke-width: 2.5px !important; }
+.pele .mayBreak text { fill: var(--warning, #b85a06) !important; }
+.pele .bugPath rect { stroke: var(--info, #1680f3) !important; stroke-width: 2.5px !important; }
+.pele .repeats rect { stroke: var(--chart-3, #9b35d6) !important; stroke-width: 2.5px !important; stroke-dasharray: 6 3; }
+@media (prefers-color-scheme: dark) {
+ .pele { --pele-fg: var(--foreground, #f5f5f5); --pele-muted: var(--muted-foreground, #acacac);
+   --pele-line: var(--muted-foreground, #939393); --pele-surface: var(--card, #121212);
+   --pele-surface-alt: var(--secondary, #2c2c2c); --pele-border: var(--border, #4e4e4e); }
+ .pele .blue rect { fill: color-mix(in srgb, var(--info, #1b3857) 20%, var(--card, #121212)); }
+ .pele .teal rect { fill: color-mix(in srgb, var(--success, #174641) 20%, var(--card, #121212)); }
+ .pele .orange rect { fill: color-mix(in srgb, var(--warning, #573117) 20%, var(--card, #121212)); }
+ .pele .breaks rect { fill: var(--destructive-surface, #2e2021) !important; }
+ .pele .breaks text { fill: var(--destructive, #ff6463) !important; }
+}
+</style><text class="pele-title" font-weight="var(--_tw)" text-anchor="middle" xml:space="preserve"><tspan x="524.5" y="25.6">Clean up temporary files after every ordinary check exit</tspan></text><g transform="translate(0,36)"><g class="pele-clusters"><g class="pele-cluster pele-state-composite" data-id="legend"><rect x="282.56" y="8" width="757.52" height="130" rx="10" fill="var(--_a)" fill-opacity="0.5" stroke="var(--_b)"/><path d="M282.56,44H1040.08" fill="none" stroke="var(--_b)"/><text class="pele-cluster-label" x="661.32" y="31.6" text-anchor="middle">Legend</text></g></g><g class="pele-edges" fill="none" stroke="var(--_l)" stroke-linecap="round"><g class="pele-edge pele-transition" data-id="edge0"><path d="M235.56,138L235.56,175"/><path class="pele-marker" d="M235.56,182L232.2,174L238.92,174Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge1"><path d="M183.52,226C183.52,260.5 44.35,260.5 44.35,295L44.35,791C44.35,819 212.8,819 212.8,847L212.8,853"/><path class="pele-marker" d="M212.8,860L209.44,852L216.16,852Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge2"><path d="M305.11,226L305.11,288"/><path class="pele-marker" d="M305.11,295L301.75,287L308.47,287Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge3"><path d="M237.77,904C237.77,913.25 131.32,913.25 131.32,922.5L131.32,981"/><path class="pele-marker" d="M131.32,988L127.96,980L134.68,980Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge4"><path d="M214.17,339L214.17,791C214.17,819 228.8,819 228.8,847L228.8,853"/><path class="pele-marker" d="M228.8,860L225.44,852L232.16,852Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge5"><path d="M396.05,339L396.05,401"/><path class="pele-marker" d="M396.05,408L392.69,400L399.41,400Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge6"><path d="M396.05,452L396.05,514"/><path class="pele-marker" d="M396.05,521L392.69,513L399.41,513Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge7"><path d="M372.92,565C372.92,599.5 319.11,599.5 319.11,634L319.11,791C319.11,819 244.8,819 244.8,847L244.8,853"/><path class="pele-marker" d="M244.8,860L241.44,852L248.16,852Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge8"><path d="M419.17,565C419.17,574.25 472.98,574.25 472.98,583.5L472.98,627"/><path class="pele-marker" d="M472.98,634L469.62,626L476.34,626Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge9"><path d="M257.36,904C257.36,913.25 363.81,913.25 363.81,922.5L363.81,981"/><path class="pele-marker" d="M363.81,988L360.45,980L367.17,980Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge10"><path d="M443.63,678C443.63,712.5 395.82,712.5 395.82,747L395.82,791C395.82,819 260.8,819 260.8,847L260.8,853"/><path class="pele-marker" d="M260.8,860L257.44,852L264.16,852Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge11"><path d="M502.33,678C502.33,687.25 550.14,687.25 550.14,696.5L550.14,740"/><path class="pele-marker" d="M550.14,747L546.78,739L553.5,739Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge12"><path d="M550.14,791L550.14,834.5C550.14,837.97 276.8,844.91 276.8,848.38L276.8,853"/><path class="pele-marker" d="M276.8,860L273.44,852L280.16,852Z" fill="var(--_l)" stroke="none"/></g></g><g class="pele-edge-labels" font-size="14"><g class="pele-edge-label" data-id="edge1"><rect x="10" y="532.5" width="68.69" height="21" rx="3" fill="var(--_bg)"/><text x="44.35" y="547.9" text-anchor="middle">proof fails</text></g><g class="pele-edge-label" data-id="edge2"><rect x="261.03" y="246.5" width="88.15" height="21" rx="3" fill="var(--_bg)"/><text x="305.11" y="261.9" text-anchor="middle">proof passes</text></g><g class="pele-edge-label" data-id="edge3"><rect x="77.9" y="932" width="106.83" height="21" rx="3" fill="var(--_bg)"/><text x="131.32" y="947.4" text-anchor="middle">run exit cleanup</text></g><g class="pele-edge-label" data-id="edge4"><rect x="137.43" y="532.5" width="153.49" height="21" rx="3" fill="var(--_bg)"/><text x="214.17" y="547.9" text-anchor="middle">directory allocation fails</text></g><g class="pele-edge-label" data-id="edge5"><rect x="310.36" y="359.5" width="171.38" height="21" rx="3" fill="var(--_bg)"/><text x="396.05" y="374.9" text-anchor="middle">create temporary directory</text></g><g class="pele-edge-label" data-id="edge6"><rect x="302.17" y="472.5" width="187.76" height="21" rx="3" fill="var(--_bg)"/><text x="396.05" y="487.9" text-anchor="middle">continue without exit cleanup</text></g><g class="pele-edge-label" data-id="edge7"><rect x="276.6" y="645.5" width="85.03" height="21" rx="3" fill="var(--_bg)"/><text x="319.11" y="660.9" text-anchor="middle">a check fails</text></g><g class="pele-edge-label" data-id="edge8"><rect x="416.46" y="585.5" width="113.03" height="21" rx="3" fill="var(--_bg)"/><text x="472.98" y="600.9" text-anchor="middle">compile example</text></g><g class="pele-edge-label" data-id="edge9"><rect x="282.01" y="924.5" width="163.6" height="36" rx="3" fill="var(--_bg)"/><text text-anchor="middle" xml:space="preserve"><tspan x="363.81" y="938.4">exit with the directory still</tspan><tspan x="363.81" y="956.4">present</tspan></text></g><g class="pele-edge-label" data-id="edge10"><rect x="353.3" y="758.5" width="85.03" height="21" rx="3" fill="var(--_bg)"/><text x="395.82" y="773.9" text-anchor="middle">a check fails</text></g><g class="pele-edge-label" data-id="edge11"><rect x="493.23" y="698.5" width="113.83" height="21" rx="3" fill="var(--_bg)"/><text x="550.14" y="713.9" text-anchor="middle">execute example</text></g><g class="pele-edge-label" data-id="edge12"><rect x="449.65" y="811.5" width="200.98" height="21" rx="3" fill="var(--_bg)"/><text x="550.14" y="826.9" text-anchor="middle">a check fails or output matches</text></g></g><g class="pele-nodes"><g class="pele-node pele-state blue bugPath" data-id="s0" transform="translate(235.56,204)"><rect x="-104.05" y="-22" width="208.1" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Checking the Bend proof</text></g><g class="pele-node pele-state blue bugPath" data-id="s1" transform="translate(247.56,882)"><rect x="-61.79" y="-22" width="123.58" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Script exiting</text></g><g class="pele-node pele-state blue bugPath" data-id="s2" transform="translate(305.11,317)"><rect x="-104.92" y="-22" width="209.84" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Creating a build directory</text></g><g class="pele-node pele-state orange" data-id="s3" transform="translate(131.32,1010)"><rect x="-100.02" y="-22" width="200.05" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Build directory removed</text></g><g class="pele-node pele-state blue bugPath" data-id="s4" transform="translate(396.05,430)"><rect x="-89.35" y="-22" width="178.7" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Build directory exists</text></g><g class="pele-node pele-state blue bugPath" data-id="s5" transform="translate(396.05,543)"><rect x="-75.13" y="-22" width="150.26" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Cleanup missing</text></g><g class="pele-node pele-state blue" data-id="s6" transform="translate(472.98,656)"><rect x="-81.35" y="-22" width="162.7" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Example compiled</text></g><g class="pele-node pele-state breaks bugPath" data-id="s7" transform="translate(363.81,1010)"><rect x="-92.47" y="-22" width="184.94" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)" style="fill:#ffecee;stroke:#e72e3b;stroke-width:2.5px;"/><text class="pele-label" style="fill:#cd2834;" x="0" y="5.6" text-anchor="middle">Build directory leaked</text></g><g class="pele-node pele-state blue" data-id="s8" transform="translate(550.14,769)"><rect x="-81.81" y="-22" width="163.62" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Example executed</text></g><g class="pele-node pele-state-start" data-id="root_start" transform="translate(235.56,131)"><circle r="7" fill="var(--_l)"/></g><g class="pele-node pele-state blue" data-id="lg0" transform="translate(354.13,91)"><rect x="-55.57" y="-22" width="111.14" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">in progress</text></g><g class="pele-node pele-state orange" data-id="lg1" transform="translate(484.82,91)"><rect x="-35.12" y="-22" width="70.24" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">failed</text></g><g class="pele-node pele-state breaks" data-id="lg2" transform="translate(659.08,91)"><rect x="-99.14" y="-22" width="198.27" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)" style="fill:#ffecee;stroke:#e72e3b;stroke-width:2.5px;"/><text class="pele-label" style="fill:#cd2834;" x="0" y="5.6" text-anchor="middle">Breaks ExitCleansBuild</text></g><g class="pele-node pele-state bugPath" data-id="lg3" transform="translate(911.15,91)"><rect x="-112.94" y="-31" width="225.87" height="62" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" text-anchor="middle" xml:space="preserve"><tspan x="0" y="-4.9">Path to the ExitCleansBuild</tspan><tspan x="0" y="16.1">bug</tspan></text></g></g></g></svg></div>
+    <details class="source"><summary>Mermaid source</summary><pre><code class="language-mermaid">---
+title: &quot;Clean up temporary files after every ordinary check exit&quot;
+---
+stateDiagram-v2
+  state &quot;Legend&quot; as legend {
+    lg0: in progress
+    lg1: failed
+    lg2: Breaks ExitCleansBuild
+    lg3: Path to the ExitCleansBuild bug
+  }
+  class lg0 blue
+  class lg1 orange
+  class lg2 breaks
+  class lg3 bugPath
+  s0: Checking the Bend proof
+  s1: Script exiting
+  s2: Creating a build directory
+  s3: Build directory removed
+  s4: Build directory exists
+  s5: Cleanup missing
+  s6: Example compiled
+  s7: Build directory leaked
+  s8: Example executed
+  [*] --&gt; s0
+  s0 --&gt; s1: proof fails
+  s0 --&gt; s2: proof passes
+  s1 --&gt; s3: run exit cleanup
+  s2 --&gt; s1: directory allocation fails
+  s2 --&gt; s4: create temporary directory
+  s4 --&gt; s5: continue without exit cleanup
+  s5 --&gt; s1: a check fails
+  s5 --&gt; s6: compile example
+  s1 --&gt; s7: exit with the directory still present
+  s6 --&gt; s1: a check fails
+  s6 --&gt; s8: execute example
+  s8 --&gt; s1: a check fails or output matches
+  classDef breaks fill:#ffecee,stroke:#e72e3b,stroke-width:2.5px,color:#cd2834
+  class s0 blue
+  class s0 bugPath
+  class s1 blue
+  class s1 bugPath
+  class s2 blue
+  class s2 bugPath
+  class s3 orange
+  class s4 blue
+  class s4 bugPath
+  class s5 blue
+  class s5 bugPath
+  class s6 blue
+  class s7 breaks
+  class s7 bugPath
+  class s8 blue
+</code></pre></details></details><details><summary>Effect registration · SkipRegistration</summary>
+    <pre># EffectRegistration
+
+TLC reached 6 states and 3 steps. The chart draws 2 states and 1 arrows.
+
+## ReadyHasHandler breaks
+The shortest path has 1 step:
+0. Module loading
+1. module loads without registering capture: Capture handler missing
+
+## NoDeadlock breaks
+The shortest path has 1 step:
+0. Module loading
+1. module loads without registering capture: Capture handler missing
+
+## Rules that hold
+UnsupportedReturnsENOTSUP
+</pre><div class="chart-tools"><button data-zoom="in">Zoom in</button><button data-zoom="fit">Fit</button><span>Scroll to pan when enlarged.</span></div>
+    <div class="diagram compact"><svg xmlns="http://www.w3.org/2000/svg" class="pele pele-state" viewBox="0 0 801 398" width="801" height="398" style="max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_tw:var(--pele-title-weight,bold);--_fm:var(--pele-font-mono,monospace);font:16px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,sans-serif)" fill="var(--_fg)" role="graphics-document document" aria-roledescription="state"><style>
+.pele { --pele-bg: transparent; --pele-fg: var(--foreground, #1c1c1c);
+  --pele-muted: var(--muted-foreground, #656565); --pele-line: var(--muted-foreground, #808080);
+  --pele-surface: var(--card, #fcfcfc); --pele-surface-alt: var(--secondary, #f1f1f1);
+  --pele-border: var(--border, #c9c9c9); --pele-font: var(--font-sans, sans-serif); }
+.pele .blue rect { fill: color-mix(in srgb, var(--info, #c3e0ff) 20%, var(--card, #ffffff)); }
+.pele .teal rect { fill: color-mix(in srgb, var(--success, #bfe3df) 20%, var(--card, #ffffff)); }
+.pele .orange rect { fill: color-mix(in srgb, var(--warning, #f0d3bf) 20%, var(--card, #ffffff)); }
+.pele .breaks rect { fill: var(--destructive-surface, #ffecee) !important;
+  stroke: var(--destructive, #e72e3b) !important; stroke-width: 2.5px !important; }
+.pele .breaks text { fill: var(--destructive, #cd2834) !important; }
+.pele .mayBreak rect { fill: var(--warning-surface, #fff3e6) !important;
+  stroke: var(--warning, #e8730c) !important; stroke-width: 2.5px !important; }
+.pele .mayBreak text { fill: var(--warning, #b85a06) !important; }
+.pele .bugPath rect { stroke: var(--info, #1680f3) !important; stroke-width: 2.5px !important; }
+.pele .repeats rect { stroke: var(--chart-3, #9b35d6) !important; stroke-width: 2.5px !important; stroke-dasharray: 6 3; }
+@media (prefers-color-scheme: dark) {
+ .pele { --pele-fg: var(--foreground, #f5f5f5); --pele-muted: var(--muted-foreground, #acacac);
+   --pele-line: var(--muted-foreground, #939393); --pele-surface: var(--card, #121212);
+   --pele-surface-alt: var(--secondary, #2c2c2c); --pele-border: var(--border, #4e4e4e); }
+ .pele .blue rect { fill: color-mix(in srgb, var(--info, #1b3857) 20%, var(--card, #121212)); }
+ .pele .teal rect { fill: color-mix(in srgb, var(--success, #174641) 20%, var(--card, #121212)); }
+ .pele .orange rect { fill: color-mix(in srgb, var(--warning, #573117) 20%, var(--card, #121212)); }
+ .pele .breaks rect { fill: var(--destructive-surface, #2e2021) !important; }
+ .pele .breaks text { fill: var(--destructive, #ff6463) !important; }
+}
+</style><text class="pele-title" font-weight="var(--_tw)" text-anchor="middle" xml:space="preserve"><tspan x="400.5" y="25.6">Load the capture module before dispatching its effect</tspan></text><g transform="translate(0,36)"><g class="pele-clusters"><g class="pele-cluster pele-state-composite" data-id="legend"><rect x="157.7" y="8" width="634.83" height="130" rx="10" fill="var(--_a)" fill-opacity="0.5" stroke="var(--_b)"/><path d="M157.7,44H792.53" fill="none" stroke="var(--_b)"/><text class="pele-cluster-label" x="475.11" y="31.6" text-anchor="middle">Legend</text></g></g><g class="pele-edges" fill="none" stroke="var(--_l)" stroke-linecap="round"><g class="pele-edge pele-transition" data-id="edge0"><path d="M110.7,138L110.7,175"/><path class="pele-marker" d="M110.7,182L107.34,174L114.06,174Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge1"><path d="M110.7,226L110.7,303"/><path class="pele-marker" d="M110.7,310L107.34,302L114.06,302Z" fill="var(--_l)" stroke="none"/></g></g><g class="pele-edge-labels" font-size="14"><g class="pele-edge-label" data-id="edge1"><rect x="40.94" y="246.5" width="139.5" height="36" rx="3" fill="var(--_bg)"/><text text-anchor="middle" xml:space="preserve"><tspan x="110.7" y="260.4">module loads without</tspan><tspan x="110.7" y="278.4">registering capture</tspan></text></g></g><g class="pele-nodes"><g class="pele-node pele-state blue bugPath" data-id="s0" transform="translate(110.7,204)"><rect x="-70.25" y="-22" width="140.5" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Module loading</text></g><g class="pele-node pele-state blue breaks bugPath" data-id="s1" transform="translate(110.7,332)"><rect x="-102.7" y="-22" width="205.39" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)" style="fill:#ffecee;stroke:#e72e3b;stroke-width:2.5px;"/><text class="pele-label" style="fill:#cd2834;" x="0" y="5.6" text-anchor="middle">Capture handler missing</text></g><g class="pele-node pele-state-start" data-id="root_start" transform="translate(110.7,131)"><circle r="7" fill="var(--_l)"/></g><g class="pele-node pele-state blue" data-id="lg0" transform="translate(229.26,91)"><rect x="-55.57" y="-22" width="111.14" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">in progress</text></g><g class="pele-node pele-state breaks" data-id="lg1" transform="translate(420.86,91)"><rect x="-96.02" y="-31" width="192.05" height="62" rx="10" fill="var(--_s)" stroke="var(--_b)" style="fill:#ffecee;stroke:#e72e3b;stroke-width:2.5px;"/><text class="pele-label" style="fill:#cd2834;" text-anchor="middle" xml:space="preserve"><tspan x="0" y="-4.9">Breaks NoDeadlock or</tspan><tspan x="0" y="16.1">ReadyHasHandler</tspan></text></g><g class="pele-node pele-state bugPath" data-id="lg2" transform="translate(666.7,91)"><rect x="-109.82" y="-31" width="219.65" height="62" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" text-anchor="middle" xml:space="preserve"><tspan x="0" y="-4.9">Path to the NoDeadlock or</tspan><tspan x="0" y="16.1">ReadyHasHandler bug</tspan></text></g></g></g></svg></div>
+    <details class="source"><summary>Mermaid source</summary><pre><code class="language-mermaid">---
+title: &quot;Load the capture module before dispatching its effect&quot;
+---
+stateDiagram-v2
+  state &quot;Legend&quot; as legend {
+    lg0: in progress
+    lg1: Breaks NoDeadlock or ReadyHasHandler
+    lg2: Path to the NoDeadlock or ReadyHasHandler bug
+  }
+  class lg0 blue
+  class lg1 breaks
+  class lg2 bugPath
+  s0: Module loading
+  s1: Capture handler missing
+  [*] --&gt; s0
+  s0 --&gt; s1: module loads without registering capture
+  classDef breaks fill:#ffecee,stroke:#e72e3b,stroke-width:2.5px,color:#cd2834
+  class s0 blue
+  class s0 bugPath
+  class s1 blue
+  class s1 breaks
+  class s1 bugPath
+</code></pre></details></details><details><summary>Effect registration · WrongNativeUnsupportedCode</summary>
+    <pre># EffectRegistration
+
+TLC reached 9 states and 9 steps. The chart draws 5 states and 4 arrows.
+The chart does not draw 3 steps that stay in one chart state.
+
+## UnsupportedReturnsENOTSUP breaks
+The shortest path has 2 steps:
+0. Module loading
+1. initialize the module: Capture handler registered
+2. return an unexpected error: Window and unexpected error returned
+
+## Rules that hold
+ReadyHasHandler, NoDeadlock
+</pre><div class="chart-tools"><button data-zoom="in">Zoom in</button><button data-zoom="fit">Fit</button><span>Scroll to pan when enlarged.</span></div>
+    <div class="diagram compact"><svg xmlns="http://www.w3.org/2000/svg" class="pele pele-state" viewBox="0 0 1170 585" width="1170" height="585" style="max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_tw:var(--pele-title-weight,bold);--_fm:var(--pele-font-mono,monospace);font:16px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,sans-serif)" fill="var(--_fg)" role="graphics-document document" aria-roledescription="state"><style>
+.pele { --pele-bg: transparent; --pele-fg: var(--foreground, #1c1c1c);
+  --pele-muted: var(--muted-foreground, #656565); --pele-line: var(--muted-foreground, #808080);
+  --pele-surface: var(--card, #fcfcfc); --pele-surface-alt: var(--secondary, #f1f1f1);
+  --pele-border: var(--border, #c9c9c9); --pele-font: var(--font-sans, sans-serif); }
+.pele .blue rect { fill: color-mix(in srgb, var(--info, #c3e0ff) 20%, var(--card, #ffffff)); }
+.pele .teal rect { fill: color-mix(in srgb, var(--success, #bfe3df) 20%, var(--card, #ffffff)); }
+.pele .orange rect { fill: color-mix(in srgb, var(--warning, #f0d3bf) 20%, var(--card, #ffffff)); }
+.pele .breaks rect { fill: var(--destructive-surface, #ffecee) !important;
+  stroke: var(--destructive, #e72e3b) !important; stroke-width: 2.5px !important; }
+.pele .breaks text { fill: var(--destructive, #cd2834) !important; }
+.pele .mayBreak rect { fill: var(--warning-surface, #fff3e6) !important;
+  stroke: var(--warning, #e8730c) !important; stroke-width: 2.5px !important; }
+.pele .mayBreak text { fill: var(--warning, #b85a06) !important; }
+.pele .bugPath rect { stroke: var(--info, #1680f3) !important; stroke-width: 2.5px !important; }
+.pele .repeats rect { stroke: var(--chart-3, #9b35d6) !important; stroke-width: 2.5px !important; stroke-dasharray: 6 3; }
+@media (prefers-color-scheme: dark) {
+ .pele { --pele-fg: var(--foreground, #f5f5f5); --pele-muted: var(--muted-foreground, #acacac);
+   --pele-line: var(--muted-foreground, #939393); --pele-surface: var(--card, #121212);
+   --pele-surface-alt: var(--secondary, #2c2c2c); --pele-border: var(--border, #4e4e4e); }
+ .pele .blue rect { fill: color-mix(in srgb, var(--info, #1b3857) 20%, var(--card, #121212)); }
+ .pele .teal rect { fill: color-mix(in srgb, var(--success, #174641) 20%, var(--card, #121212)); }
+ .pele .orange rect { fill: color-mix(in srgb, var(--warning, #573117) 20%, var(--card, #121212)); }
+ .pele .breaks rect { fill: var(--destructive-surface, #2e2021) !important; }
+ .pele .breaks text { fill: var(--destructive, #ff6463) !important; }
+}
+</style><text class="pele-title" font-weight="var(--_tw)" text-anchor="middle" xml:space="preserve"><tspan x="585" y="25.6">Load the capture module before dispatching its effect</tspan></text><g transform="translate(0,36)"><g class="pele-clusters"><g class="pele-cluster pele-state-composite" data-id="legend"><rect x="297.31" y="8" width="864.19" height="151" rx="10" fill="var(--_a)" fill-opacity="0.5" stroke="var(--_b)"/><path d="M297.31,44H1161.5" fill="none" stroke="var(--_b)"/><text class="pele-cluster-label" x="729.41" y="31.6" text-anchor="middle">Legend</text></g></g><g class="pele-edges" fill="none" stroke="var(--_l)" stroke-linecap="round"><g class="pele-edge pele-transition" data-id="edge0"><path d="M250.31,159L250.31,196"/><path class="pele-marker" d="M250.31,203L246.95,195L253.67,195Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge1"><path d="M250.31,247L250.31,309"/><path class="pele-marker" d="M250.31,316L246.95,308L253.67,308Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge2"><path d="M191.16,360C191.16,394 114.71,394 114.71,428L114.71,471.5"/><path class="pele-marker" d="M114.71,478.5L111.35,470.5L118.07,470.5Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge3"><path d="M301.46,360C301.46,384.8 314.47,400 335.69,400C356.91,400 369.91,410.64 369.91,428L369.91,471.5"/><path class="pele-marker" d="M369.91,478.5L366.55,470.5L373.27,470.5Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge4"><path d="M317.46,360C317.46,377.36 375.33,388 469.73,388C564.14,388 622,403.2 622,428L622,471.5"/><path class="pele-marker" d="M622,478.5L618.64,470.5L625.36,470.5Z" fill="var(--_l)" stroke="none"/></g></g><g class="pele-edge-labels" font-size="14"><g class="pele-edge-label" data-id="edge1"><rect x="184.85" y="267.5" width="130.93" height="21" rx="3" fill="var(--_bg)"/><text x="250.31" y="282.9" text-anchor="middle">initialize the module</text></g><g class="pele-edge-label" data-id="edge2"><rect x="17.74" y="430" width="193.95" height="21" rx="3" fill="var(--_bg)"/><text x="114.71" y="445.4" text-anchor="middle">return ENOTSUP and window</text></g><g class="pele-edge-label" data-id="edge3"><rect x="309.88" y="430" width="120.06" height="21" rx="3" fill="var(--_bg)"/><text x="369.91" y="445.4" text-anchor="middle">run native capture</text></g><g class="pele-edge-label" data-id="edge4"><rect x="535.13" y="430" width="173.75" height="21" rx="3" fill="var(--_bg)"/><text x="622" y="445.4" text-anchor="middle">return an unexpected error</text></g></g><g class="pele-nodes"><g class="pele-node pele-state blue bugPath" data-id="s0" transform="translate(250.31,225)"><rect x="-70.25" y="-22" width="140.5" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Module loading</text></g><g class="pele-node pele-state blue bugPath" data-id="s1" transform="translate(250.31,338)"><rect x="-111.15" y="-22" width="222.3" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Capture handler registered</text></g><g class="pele-node pele-state teal breaks bugPath" data-id="s2" transform="translate(622,509.5)"><rect x="-103.6" y="-31" width="207.2" height="62" rx="10" fill="var(--_s)" stroke="var(--_b)" style="fill:#ffecee;stroke:#e72e3b;stroke-width:2.5px;"/><text class="pele-label" style="fill:#cd2834;" text-anchor="middle" xml:space="preserve"><tspan x="0" y="-4.9">Window and unexpected</tspan><tspan x="0" y="16.1">error returned</tspan></text></g><g class="pele-node pele-state teal" data-id="s3" transform="translate(114.71,509.5)"><rect x="-106.71" y="-31" width="213.42" height="62" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" text-anchor="middle" xml:space="preserve"><tspan x="0" y="-4.9">Window and unsupported</tspan><tspan x="0" y="16.1">error returned</tspan></text></g><g class="pele-node pele-state teal" data-id="s4" transform="translate(369.91,500.5)"><rect x="-108.49" y="-22" width="216.98" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Native capture dispatched</text></g><g class="pele-node pele-state-start" data-id="root_start" transform="translate(250.31,152)"><circle r="7" fill="var(--_l)"/></g><g class="pele-node pele-state teal" data-id="lg0" transform="translate(356.88,101.5)"><rect x="-43.57" y="-22" width="87.14" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">finished</text></g><g class="pele-node pele-state blue" data-id="lg1" transform="translate(496.02,101.5)"><rect x="-55.57" y="-22" width="111.14" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">in progress</text></g><g class="pele-node pele-state breaks" data-id="lg2" transform="translate(720.06,101.5)"><rect x="-128.48" y="-31" width="256.96" height="62" rx="10" fill="var(--_s)" stroke="var(--_b)" style="fill:#ffecee;stroke:#e72e3b;stroke-width:2.5px;"/><text class="pele-label" style="fill:#cd2834;" text-anchor="middle" xml:space="preserve"><tspan x="0" y="-4.9">Breaks</tspan><tspan x="0" y="16.1">UnsupportedReturnsENOTSUP</tspan></text></g><g class="pele-node pele-state bugPath" data-id="lg3" transform="translate(1017.02,101.5)"><rect x="-128.48" y="-41.5" width="256.96" height="83" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" text-anchor="middle" xml:space="preserve"><tspan x="0" y="-15.4">Path to the</tspan><tspan x="0" y="5.6">UnsupportedReturnsENOTSUP</tspan><tspan x="0" y="26.6">bug</tspan></text></g></g></g></svg></div>
+    <details class="source"><summary>Mermaid source</summary><pre><code class="language-mermaid">---
+title: &quot;Load the capture module before dispatching its effect&quot;
+---
+stateDiagram-v2
+  state &quot;Legend&quot; as legend {
+    lg0: finished
+    lg1: in progress
+    lg2: Breaks UnsupportedReturnsENOTSUP
+    lg3: Path to the UnsupportedReturnsENOTSUP bug
+  }
+  class lg0 teal
+  class lg1 blue
+  class lg2 breaks
+  class lg3 bugPath
+  s0: Module loading
+  s1: Capture handler registered
+  s2: Window and unexpected error returned
+  s3: Window and unsupported error returned
+  s4: Native capture dispatched
+  [*] --&gt; s0
+  s0 --&gt; s1: initialize the module
+  s1 --&gt; s3: return ENOTSUP and window
+  s1 --&gt; s4: run native capture
+  s1 --&gt; s2: return an unexpected error
+  classDef breaks fill:#ffecee,stroke:#e72e3b,stroke-width:2.5px,color:#cd2834
+  class s0 blue
+  class s0 bugPath
+  class s1 blue
+  class s1 bugPath
+  class s2 teal
+  class s2 breaks
+  class s2 bugPath
+  class s3 teal
+  class s4 teal
+</code></pre></details></details><details><summary>Pixel ownership · SkipRelease</summary>
+    <pre># PixelOwnership
+
+TLC reached 59 states and 74 steps. The chart draws 8 states and 7 arrows.
+The chart does not draw 39 steps that stay in one chart state.
+
+## AllImagesReleased breaks
+The shortest path has 2 steps:
+0. No image acquired
+1. acquire client image: Temporary image owned
+2. validation fails without image cleanup: Capture failed, image leaked
+
+## Rules that hold
+PaddingZeroAndOwned, NoDeadlock
+</pre><div class="chart-tools"><button data-zoom="in">Zoom in</button><button data-zoom="fit">Fit</button><span>Scroll to pan when enlarged.</span></div>
+    <div class="diagram compact"><svg xmlns="http://www.w3.org/2000/svg" class="pele pele-state" viewBox="0 0 1159 904" width="1159" height="904" style="max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_tw:var(--pele-title-weight,bold);--_fm:var(--pele-font-mono,monospace);font:16px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,sans-serif)" fill="var(--_fg)" role="graphics-document document" aria-roledescription="state"><style>
+.pele { --pele-bg: transparent; --pele-fg: var(--foreground, #1c1c1c);
+  --pele-muted: var(--muted-foreground, #656565); --pele-line: var(--muted-foreground, #808080);
+  --pele-surface: var(--card, #fcfcfc); --pele-surface-alt: var(--secondary, #f1f1f1);
+  --pele-border: var(--border, #c9c9c9); --pele-font: var(--font-sans, sans-serif); }
+.pele .blue rect { fill: color-mix(in srgb, var(--info, #c3e0ff) 20%, var(--card, #ffffff)); }
+.pele .teal rect { fill: color-mix(in srgb, var(--success, #bfe3df) 20%, var(--card, #ffffff)); }
+.pele .orange rect { fill: color-mix(in srgb, var(--warning, #f0d3bf) 20%, var(--card, #ffffff)); }
+.pele .breaks rect { fill: var(--destructive-surface, #ffecee) !important;
+  stroke: var(--destructive, #e72e3b) !important; stroke-width: 2.5px !important; }
+.pele .breaks text { fill: var(--destructive, #cd2834) !important; }
+.pele .mayBreak rect { fill: var(--warning-surface, #fff3e6) !important;
+  stroke: var(--warning, #e8730c) !important; stroke-width: 2.5px !important; }
+.pele .mayBreak text { fill: var(--warning, #b85a06) !important; }
+.pele .bugPath rect { stroke: var(--info, #1680f3) !important; stroke-width: 2.5px !important; }
+.pele .repeats rect { stroke: var(--chart-3, #9b35d6) !important; stroke-width: 2.5px !important; stroke-dasharray: 6 3; }
+@media (prefers-color-scheme: dark) {
+ .pele { --pele-fg: var(--foreground, #f5f5f5); --pele-muted: var(--muted-foreground, #acacac);
+   --pele-line: var(--muted-foreground, #939393); --pele-surface: var(--card, #121212);
+   --pele-surface-alt: var(--secondary, #2c2c2c); --pele-border: var(--border, #4e4e4e); }
+ .pele .blue rect { fill: color-mix(in srgb, var(--info, #1b3857) 20%, var(--card, #121212)); }
+ .pele .teal rect { fill: color-mix(in srgb, var(--success, #174641) 20%, var(--card, #121212)); }
+ .pele .orange rect { fill: color-mix(in srgb, var(--warning, #573117) 20%, var(--card, #121212)); }
+ .pele .breaks rect { fill: var(--destructive-surface, #2e2021) !important; }
+ .pele .breaks text { fill: var(--destructive, #ff6463) !important; }
+}
+</style><text class="pele-title" font-weight="var(--_tw)" text-anchor="middle" xml:space="preserve"><tspan x="579.5" y="25.6">Copy pixels into storage that survives window closure</tspan></text><g transform="translate(0,36)"><g class="pele-clusters"><g class="pele-cluster pele-state-composite" data-id="legend"><rect x="265.28" y="8" width="885.54" height="130" rx="10" fill="var(--_a)" fill-opacity="0.5" stroke="var(--_b)"/><path d="M265.28,44H1150.82" fill="none" stroke="var(--_b)"/><text class="pele-cluster-label" x="708.05" y="31.6" text-anchor="middle">Legend</text></g></g><g class="pele-edges" fill="none" stroke="var(--_l)" stroke-linecap="round"><g class="pele-edge pele-transition" data-id="edge0"><path d="M218.28,138L218.28,175"/><path class="pele-marker" d="M218.28,182L214.92,174L221.64,174Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge1"><path d="M187.15,226C187.15,235.25 100.03,235.25 100.03,244.5L100.03,288"/><path class="pele-marker" d="M100.03,295L96.67,287L103.39,287Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge2"><path d="M249.42,226C249.42,235.25 336.54,235.25 336.54,244.5L336.54,297"/><path class="pele-marker" d="M336.54,304L333.18,296L339.9,296Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge3"><path d="M284.06,348C284.06,361.75 226.51,361.75 226.51,375.5L226.51,443"/><path class="pele-marker" d="M226.51,450L223.15,442L229.87,442Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge4"><path d="M389.01,348C389.01,361.75 446.56,361.75 446.56,375.5L446.56,434"/><path class="pele-marker" d="M446.56,441L443.2,433L449.92,433Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge5"><path d="M226.51,494L226.51,565"/><path class="pele-marker" d="M226.51,572L223.15,564L229.87,564Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge6"><path d="M226.51,616L226.51,678"/><path class="pele-marker" d="M226.51,685L223.15,677L229.87,677Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge7"><path d="M226.51,729L226.51,791"/><path class="pele-marker" d="M226.51,798L223.15,790L229.87,790Z" fill="var(--_l)" stroke="none"/></g></g><g class="pele-edge-labels" font-size="14"><g class="pele-edge-label" data-id="edge1"><rect x="48.57" y="246.5" width="102.92" height="21" rx="3" fill="var(--_bg)"/><text x="100.03" y="261.9" text-anchor="middle">acquisition fails</text></g><g class="pele-edge-label" data-id="edge2"><rect x="270.29" y="246.5" width="132.49" height="21" rx="3" fill="var(--_bg)"/><text x="336.54" y="261.9" text-anchor="middle">acquire client image</text></g><g class="pele-edge-label" data-id="edge3"><rect x="164.16" y="385" width="124.7" height="21" rx="3" fill="var(--_bg)"/><text x="226.51" y="400.4" text-anchor="middle">allocate pixel array</text></g><g class="pele-edge-label" data-id="edge4"><rect x="353.48" y="377.5" width="186.18" height="36" rx="3" fill="var(--_bg)"/><text text-anchor="middle" xml:space="preserve"><tspan x="446.56" y="391.4">validation fails without image</tspan><tspan x="446.56" y="409.4">cleanup</tspan></text></g><g class="pele-edge-label" data-id="edge5"><rect x="165.71" y="523.5" width="121.6" height="21" rx="3" fill="var(--_bg)"/><text x="226.51" y="538.9" text-anchor="middle">clear pixel storage</text></g><g class="pele-edge-label" data-id="edge6"><rect x="160.26" y="636.5" width="132.49" height="21" rx="3" fill="var(--_bg)"/><text x="226.51" y="651.9" text-anchor="middle">release client image</text></g><g class="pele-edge-label" data-id="edge7"><rect x="138.46" y="749.5" width="176.1" height="21" rx="3" fill="var(--_bg)"/><text x="226.51" y="764.9" text-anchor="middle">return independent capture</text></g></g><g class="pele-nodes"><g class="pele-node pele-state blue bugPath" data-id="s0" transform="translate(218.28,204)"><rect x="-83.14" y="-22" width="166.27" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">No image acquired</text></g><g class="pele-node pele-state orange" data-id="s1" transform="translate(100.03,326)"><rect x="-92.03" y="-31" width="184.06" height="62" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" text-anchor="middle" xml:space="preserve"><tspan x="0" y="-4.9">Capture failed, image</tspan><tspan x="0" y="16.1">released</tspan></text></g><g class="pele-node pele-state blue bugPath" data-id="s2" transform="translate(336.54,326)"><rect x="-104.47" y="-22" width="208.94" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Temporary image owned</text></g><g class="pele-node pele-state blue" data-id="s3" transform="translate(226.51,472)"><rect x="-88.02" y="-22" width="176.05" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Pixel array allocated</text></g><g class="pele-node pele-state orange breaks bugPath" data-id="s4" transform="translate(446.56,472)"><rect x="-92.03" y="-31" width="184.06" height="62" rx="10" fill="var(--_s)" stroke="var(--_b)" style="fill:#ffecee;stroke:#e72e3b;stroke-width:2.5px;"/><text class="pele-label" style="fill:#cd2834;" text-anchor="middle" xml:space="preserve"><tspan x="0" y="-4.9">Capture failed, image</tspan><tspan x="0" y="16.1">leaked</tspan></text></g><g class="pele-node pele-state blue" data-id="s5" transform="translate(226.51,594)"><rect x="-88.91" y="-22" width="177.82" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Copying client pixels</text></g><g class="pele-node pele-state blue" data-id="s6" transform="translate(226.51,707)"><rect x="-111.58" y="-22" width="223.17" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Temporary image released</text></g><g class="pele-node pele-state teal" data-id="s7" transform="translate(226.51,829)"><rect x="-89.38" y="-31" width="178.77" height="62" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" text-anchor="middle" xml:space="preserve"><tspan x="0" y="-4.9">Independent capture</tspan><tspan x="0" y="16.1">returned</tspan></text></g><g class="pele-node pele-state-start" data-id="root_start" transform="translate(218.28,131)"><circle r="7" fill="var(--_l)"/></g><g class="pele-node pele-state teal" data-id="lg0" transform="translate(324.85,91)"><rect x="-43.57" y="-22" width="87.14" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">finished</text></g><g class="pele-node pele-state blue" data-id="lg1" transform="translate(463.99,91)"><rect x="-55.57" y="-22" width="111.14" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">in progress</text></g><g class="pele-node pele-state orange" data-id="lg2" transform="translate(594.68,91)"><rect x="-35.12" y="-22" width="70.24" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">failed</text></g><g class="pele-node pele-state breaks" data-id="lg3" transform="translate(781.83,91)"><rect x="-112.03" y="-22" width="224.06" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)" style="fill:#ffecee;stroke:#e72e3b;stroke-width:2.5px;"/><text class="pele-label" style="fill:#cd2834;" x="0" y="5.6" text-anchor="middle">Breaks AllImagesReleased</text></g><g class="pele-node pele-state bugPath" data-id="lg4" transform="translate(1034.34,91)"><rect x="-100.48" y="-31" width="200.96" height="62" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" text-anchor="middle" xml:space="preserve"><tspan x="0" y="-4.9">Path to the</tspan><tspan x="0" y="16.1">AllImagesReleased bug</tspan></text></g></g></g></svg></div>
+    <details class="source"><summary>Mermaid source</summary><pre><code class="language-mermaid">---
+title: &quot;Copy pixels into storage that survives window closure&quot;
+---
+stateDiagram-v2
+  state &quot;Legend&quot; as legend {
+    lg0: finished
+    lg1: in progress
+    lg2: failed
+    lg3: Breaks AllImagesReleased
+    lg4: Path to the AllImagesReleased bug
+  }
+  class lg0 teal
+  class lg1 blue
+  class lg2 orange
+  class lg3 breaks
+  class lg4 bugPath
+  s0: No image acquired
+  s1: Capture failed, image released
+  s2: Temporary image owned
+  s3: Pixel array allocated
+  s4: Capture failed, image leaked
+  s5: Copying client pixels
+  s6: Temporary image released
+  s7: Independent capture returned
+  [*] --&gt; s0
+  s0 --&gt; s1: acquisition fails
+  s0 --&gt; s2: acquire client image
+  s2 --&gt; s3: allocate pixel array
+  s2 --&gt; s4: validation fails without image cleanup
+  s3 --&gt; s5: clear pixel storage
+  s5 --&gt; s6: release client image
+  s6 --&gt; s7: return independent capture
+  classDef breaks fill:#ffecee,stroke:#e72e3b,stroke-width:2.5px,color:#cd2834
+  class s0 blue
+  class s0 bugPath
+  class s1 orange
+  class s2 blue
+  class s2 bugPath
+  class s3 blue
+  class s4 orange
+  class s4 breaks
+  class s4 bugPath
+  class s5 blue
+  class s6 blue
+  class s7 teal
+</code></pre></details></details><details><summary>Pixel ownership · SkipZero</summary>
+    <pre># PixelOwnership
+
+TLC reached 59 states and 74 steps. The chart draws 8 states and 10 arrows.
+The chart does not draw 34 steps that stay in one chart state.
+
+## PaddingZeroAndOwned breaks
+The shortest path has 10 steps:
+0. No image acquired
+1. acquire client image: Temporary image owned
+2. choose array capacity: Temporary image owned
+3. choose array capacity: Temporary image owned
+4. allocate pixel array: Pixel array allocated
+5. skip clearing pixel storage: Copying client pixels
+6. copy a pixel: Copying client pixels
+7. copy a pixel: Copying client pixels
+8. copy a pixel: Copying client pixels
+9. release client image: Temporary image released
+10. return independent capture: Capture returned with stale padding
+
+## Rules that hold
+AllImagesReleased, NoDeadlock
+</pre><div class="chart-tools"><button data-zoom="in">Zoom in</button><button data-zoom="fit">Fit</button><span>Scroll to pan when enlarged.</span></div>
+    <div class="diagram compact"><svg xmlns="http://www.w3.org/2000/svg" class="pele pele-state" viewBox="0 0 1169 892" width="1169" height="892" style="max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_tw:var(--pele-title-weight,bold);--_fm:var(--pele-font-mono,monospace);font:16px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,sans-serif)" fill="var(--_fg)" role="graphics-document document" aria-roledescription="state"><style>
+.pele { --pele-bg: transparent; --pele-fg: var(--foreground, #1c1c1c);
+  --pele-muted: var(--muted-foreground, #656565); --pele-line: var(--muted-foreground, #808080);
+  --pele-surface: var(--card, #fcfcfc); --pele-surface-alt: var(--secondary, #f1f1f1);
+  --pele-border: var(--border, #c9c9c9); --pele-font: var(--font-sans, sans-serif); }
+.pele .blue rect { fill: color-mix(in srgb, var(--info, #c3e0ff) 20%, var(--card, #ffffff)); }
+.pele .teal rect { fill: color-mix(in srgb, var(--success, #bfe3df) 20%, var(--card, #ffffff)); }
+.pele .orange rect { fill: color-mix(in srgb, var(--warning, #f0d3bf) 20%, var(--card, #ffffff)); }
+.pele .breaks rect { fill: var(--destructive-surface, #ffecee) !important;
+  stroke: var(--destructive, #e72e3b) !important; stroke-width: 2.5px !important; }
+.pele .breaks text { fill: var(--destructive, #cd2834) !important; }
+.pele .mayBreak rect { fill: var(--warning-surface, #fff3e6) !important;
+  stroke: var(--warning, #e8730c) !important; stroke-width: 2.5px !important; }
+.pele .mayBreak text { fill: var(--warning, #b85a06) !important; }
+.pele .bugPath rect { stroke: var(--info, #1680f3) !important; stroke-width: 2.5px !important; }
+.pele .repeats rect { stroke: var(--chart-3, #9b35d6) !important; stroke-width: 2.5px !important; stroke-dasharray: 6 3; }
+@media (prefers-color-scheme: dark) {
+ .pele { --pele-fg: var(--foreground, #f5f5f5); --pele-muted: var(--muted-foreground, #acacac);
+   --pele-line: var(--muted-foreground, #939393); --pele-surface: var(--card, #121212);
+   --pele-surface-alt: var(--secondary, #2c2c2c); --pele-border: var(--border, #4e4e4e); }
+ .pele .blue rect { fill: color-mix(in srgb, var(--info, #1b3857) 20%, var(--card, #121212)); }
+ .pele .teal rect { fill: color-mix(in srgb, var(--success, #174641) 20%, var(--card, #121212)); }
+ .pele .orange rect { fill: color-mix(in srgb, var(--warning, #573117) 20%, var(--card, #121212)); }
+ .pele .breaks rect { fill: var(--destructive-surface, #2e2021) !important; }
+ .pele .breaks text { fill: var(--destructive, #ff6463) !important; }
+}
+</style><text class="pele-title" font-weight="var(--_tw)" text-anchor="middle" xml:space="preserve"><tspan x="584.5" y="25.6">Copy pixels into storage that survives window closure</tspan></text><g transform="translate(0,36)"><g class="pele-clusters"><g class="pele-cluster pele-state-composite" data-id="legend"><rect x="294.1" y="8" width="866.02" height="151" rx="10" fill="var(--_a)" fill-opacity="0.5" stroke="var(--_b)"/><path d="M294.1,44H1160.12" fill="none" stroke="var(--_b)"/><text class="pele-cluster-label" x="727.11" y="31.6" text-anchor="middle">Legend</text></g></g><g class="pele-edges" fill="none" stroke="var(--_l)" stroke-linecap="round"><g class="pele-edge pele-transition" data-id="edge0"><path d="M247.1,159L247.1,196"/><path class="pele-marker" d="M247.1,203L243.74,195L250.46,195Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge1"><path d="M215.96,247C215.96,281.5 67.05,281.5 67.05,316L67.05,422"/><path class="pele-marker" d="M67.05,429L63.69,421L70.41,421Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge2"><path d="M278.24,247C278.24,256.19 427.15,256.31 427.15,265.5L427.15,309"/><path class="pele-marker" d="M427.15,316L423.79,308L430.51,308Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge3"><path d="M361.99,360L361.99,403.5C361.99,406.97 140.06,413.91 140.06,417.38L140.06,422"/><path class="pele-marker" d="M140.06,429L136.7,421L143.42,421Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge4"><path d="M492.3,360L492.3,431"/><path class="pele-marker" d="M492.3,438L488.94,430L495.66,430Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge5"><path d="M531.62,330C557.62,322 557.62,354 538.31,348.06"/><path class="pele-marker" d="M531.62,346L540.25,345.14L538.28,351.56Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge6"><path d="M492.3,482L492.3,553"/><path class="pele-marker" d="M492.3,560L488.94,552L495.66,552Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge7"><path d="M492.3,604L492.3,666"/><path class="pele-marker" d="M492.3,673L488.94,665L495.66,665Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge8"><path d="M432.72,717C432.72,726.25 371.59,726.25 371.59,735.5L371.59,779"/><path class="pele-marker" d="M371.59,786L368.23,778L374.95,778Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge9"><path d="M581.22,574C607.22,566 607.22,598 587.91,592.06"/><path class="pele-marker" d="M581.22,590L589.85,589.14L587.87,595.56Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge10"><path d="M551.89,717C551.89,726.25 613.02,726.25 613.02,735.5L613.02,779"/><path class="pele-marker" d="M613.02,786L609.66,778L616.38,778Z" fill="var(--_l)" stroke="none"/></g></g><g class="pele-edge-labels" font-size="14"><g class="pele-edge-label" data-id="edge1"><rect x="15.59" y="327.5" width="102.92" height="21" rx="3" fill="var(--_bg)"/><text x="67.05" y="342.9" text-anchor="middle">acquisition fails</text></g><g class="pele-edge-label" data-id="edge2"><rect x="360.9" y="267.5" width="132.49" height="21" rx="3" fill="var(--_bg)"/><text x="427.15" y="282.9" text-anchor="middle">acquire client image</text></g><g class="pele-edge-label" data-id="edge3"><rect x="314.03" y="380.5" width="95.92" height="21" rx="3" fill="var(--_bg)"/><text x="361.99" y="395.9" text-anchor="middle">validation fails</text></g><g class="pele-edge-label" data-id="edge4"><rect x="429.95" y="380.5" width="124.7" height="21" rx="3" fill="var(--_bg)"/><text x="492.3" y="395.9" text-anchor="middle">allocate pixel array</text></g><g class="pele-edge-label" data-id="edge5"><rect x="563.62" y="327.5" width="144.16" height="21" rx="3" fill="var(--_bg)"/><text x="635.7" y="342.9" text-anchor="middle">choose array capacity</text></g><g class="pele-edge-label" data-id="edge6"><rect x="407.78" y="511.5" width="169.06" height="21" rx="3" fill="var(--_bg)"/><text x="492.3" y="526.9" text-anchor="middle">skip clearing pixel storage</text></g><g class="pele-edge-label" data-id="edge7"><rect x="426.06" y="624.5" width="132.49" height="21" rx="3" fill="var(--_bg)"/><text x="492.3" y="639.9" text-anchor="middle">release client image</text></g><g class="pele-edge-label" data-id="edge8"><rect x="283.54" y="737.5" width="176.1" height="21" rx="3" fill="var(--_bg)"/><text x="371.59" y="752.9" text-anchor="middle">return independent capture</text></g><g class="pele-edge-label" data-id="edge9"><rect x="613.22" y="571.5" width="81.92" height="21" rx="3" fill="var(--_bg)"/><text x="654.18" y="586.9" text-anchor="middle">copy a pixel</text></g><g class="pele-edge-label" data-id="edge10"><rect x="524.97" y="737.5" width="176.1" height="21" rx="3" fill="var(--_bg)"/><text x="613.02" y="752.9" text-anchor="middle">return independent capture</text></g></g><g class="pele-nodes"><g class="pele-node pele-state blue bugPath" data-id="s0" transform="translate(247.1,225)"><rect x="-83.14" y="-22" width="166.27" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">No image acquired</text></g><g class="pele-node pele-state orange" data-id="s1" transform="translate(100.03,460)"><rect x="-92.03" y="-31" width="184.06" height="62" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" text-anchor="middle" xml:space="preserve"><tspan x="0" y="-4.9">Capture failed, image</tspan><tspan x="0" y="16.1">released</tspan></text></g><g class="pele-node pele-state blue bugPath" data-id="s2" transform="translate(427.15,338)"><rect x="-104.47" y="-22" width="208.94" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Temporary image owned</text></g><g class="pele-node pele-state blue bugPath" data-id="s3" transform="translate(492.3,460)"><rect x="-88.02" y="-22" width="176.05" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Pixel array allocated</text></g><g class="pele-node pele-state blue bugPath" data-id="s4" transform="translate(492.3,582)"><rect x="-88.91" y="-22" width="177.82" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Copying client pixels</text></g><g class="pele-node pele-state blue bugPath" data-id="s5" transform="translate(492.3,695)"><rect x="-111.58" y="-22" width="223.17" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Temporary image released</text></g><g class="pele-node pele-state teal" data-id="s6" transform="translate(371.59,817)"><rect x="-89.38" y="-31" width="178.77" height="62" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" text-anchor="middle" xml:space="preserve"><tspan x="0" y="-4.9">Independent capture</tspan><tspan x="0" y="16.1">returned</tspan></text></g><g class="pele-node pele-state teal breaks bugPath" data-id="s7" transform="translate(613.02,817)"><rect x="-112.04" y="-31" width="224.08" height="62" rx="10" fill="var(--_s)" stroke="var(--_b)" style="fill:#ffecee;stroke:#e72e3b;stroke-width:2.5px;"/><text class="pele-label" style="fill:#cd2834;" text-anchor="middle" xml:space="preserve"><tspan x="0" y="-4.9">Capture returned with stale</tspan><tspan x="0" y="16.1">padding</tspan></text></g><g class="pele-node pele-state-start" data-id="root_start" transform="translate(247.1,152)"><circle r="7" fill="var(--_l)"/></g><g class="pele-node pele-state teal" data-id="lg0" transform="translate(353.67,101.5)"><rect x="-43.57" y="-22" width="87.14" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">finished</text></g><g class="pele-node pele-state blue" data-id="lg1" transform="translate(492.8,101.5)"><rect x="-55.57" y="-22" width="111.14" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">in progress</text></g><g class="pele-node pele-state orange" data-id="lg2" transform="translate(623.49,101.5)"><rect x="-35.12" y="-22" width="70.24" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">failed</text></g><g class="pele-node pele-state breaks" data-id="lg3" transform="translate(799.99,101.5)"><rect x="-101.38" y="-31" width="202.75" height="62" rx="10" fill="var(--_s)" stroke="var(--_b)" style="fill:#ffecee;stroke:#e72e3b;stroke-width:2.5px;"/><text class="pele-label" style="fill:#cd2834;" text-anchor="middle" xml:space="preserve"><tspan x="0" y="-4.9">Breaks</tspan><tspan x="0" y="16.1">PaddingZeroAndOwned</tspan></text></g><g class="pele-node pele-state bugPath" data-id="lg4" transform="translate(1042.74,101.5)"><rect x="-101.38" y="-41.5" width="202.75" height="83" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" text-anchor="middle" xml:space="preserve"><tspan x="0" y="-15.4">Path to the</tspan><tspan x="0" y="5.6">PaddingZeroAndOwned</tspan><tspan x="0" y="26.6">bug</tspan></text></g></g></g></svg></div>
+    <details class="source"><summary>Mermaid source</summary><pre><code class="language-mermaid">---
+title: &quot;Copy pixels into storage that survives window closure&quot;
+---
+stateDiagram-v2
+  state &quot;Legend&quot; as legend {
+    lg0: finished
+    lg1: in progress
+    lg2: failed
+    lg3: Breaks PaddingZeroAndOwned
+    lg4: Path to the PaddingZeroAndOwned bug
+  }
+  class lg0 teal
+  class lg1 blue
+  class lg2 orange
+  class lg3 breaks
+  class lg4 bugPath
+  s0: No image acquired
+  s1: Capture failed, image released
+  s2: Temporary image owned
+  s3: Pixel array allocated
+  s4: Copying client pixels
+  s5: Temporary image released
+  s6: Independent capture returned
+  s7: Capture returned with stale padding
+  [*] --&gt; s0
+  s0 --&gt; s1: acquisition fails
+  s0 --&gt; s2: acquire client image
+  s2 --&gt; s1: validation fails
+  s2 --&gt; s3: allocate pixel array
+  s2 --&gt; s2: choose array capacity
+  s3 --&gt; s4: skip clearing pixel storage
+  s4 --&gt; s5: release client image
+  s5 --&gt; s6: return independent capture
+  s4 --&gt; s4: copy a pixel
+  s5 --&gt; s7: return independent capture
+  classDef breaks fill:#ffecee,stroke:#e72e3b,stroke-width:2.5px,color:#cd2834
+  class s0 blue
+  class s0 bugPath
+  class s1 orange
+  class s2 blue
+  class s2 bugPath
+  class s3 blue
+  class s3 bugPath
+  class s4 blue
+  class s4 bugPath
+  class s5 blue
+  class s5 bugPath
+  class s6 teal
+  class s7 teal
+  class s7 breaks
+  class s7 bugPath
+</code></pre></details></details><details><summary>Window lifecycle · SkipClose</summary>
+    <pre># WindowLifecycle
+
+TLC reached 10 states and 12 steps. The chart draws 8 states and 8 arrows.
+The chart does not draw 3 steps that stay in one chart state.
+
+## ReportAfterClose breaks
+The shortest path has 4 steps:
+0. Opening a window
+1. window opens: Window open
+2. draw the image: Image drawn
+3. capture succeeds: Snapshot ready
+4. continue without closing the window: Reporting while the window remains open
+
+## Rules that hold
+NoDeadlock
+</pre><div class="chart-tools"><button data-zoom="in">Zoom in</button><button data-zoom="fit">Fit</button><span>Scroll to pan when enlarged.</span></div>
+    <div class="diagram compact"><svg xmlns="http://www.w3.org/2000/svg" class="pele pele-state" viewBox="0 0 993 901" width="993" height="901" style="max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_tw:var(--pele-title-weight,bold);--_fm:var(--pele-font-mono,monospace);font:16px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,sans-serif)" fill="var(--_fg)" role="graphics-document document" aria-roledescription="state"><style>
+.pele { --pele-bg: transparent; --pele-fg: var(--foreground, #1c1c1c);
+  --pele-muted: var(--muted-foreground, #656565); --pele-line: var(--muted-foreground, #808080);
+  --pele-surface: var(--card, #fcfcfc); --pele-surface-alt: var(--secondary, #f1f1f1);
+  --pele-border: var(--border, #c9c9c9); --pele-font: var(--font-sans, sans-serif); }
+.pele .blue rect { fill: color-mix(in srgb, var(--info, #c3e0ff) 20%, var(--card, #ffffff)); }
+.pele .teal rect { fill: color-mix(in srgb, var(--success, #bfe3df) 20%, var(--card, #ffffff)); }
+.pele .orange rect { fill: color-mix(in srgb, var(--warning, #f0d3bf) 20%, var(--card, #ffffff)); }
+.pele .breaks rect { fill: var(--destructive-surface, #ffecee) !important;
+  stroke: var(--destructive, #e72e3b) !important; stroke-width: 2.5px !important; }
+.pele .breaks text { fill: var(--destructive, #cd2834) !important; }
+.pele .mayBreak rect { fill: var(--warning-surface, #fff3e6) !important;
+  stroke: var(--warning, #e8730c) !important; stroke-width: 2.5px !important; }
+.pele .mayBreak text { fill: var(--warning, #b85a06) !important; }
+.pele .bugPath rect { stroke: var(--info, #1680f3) !important; stroke-width: 2.5px !important; }
+.pele .repeats rect { stroke: var(--chart-3, #9b35d6) !important; stroke-width: 2.5px !important; stroke-dasharray: 6 3; }
+@media (prefers-color-scheme: dark) {
+ .pele { --pele-fg: var(--foreground, #f5f5f5); --pele-muted: var(--muted-foreground, #acacac);
+   --pele-line: var(--muted-foreground, #939393); --pele-surface: var(--card, #121212);
+   --pele-surface-alt: var(--secondary, #2c2c2c); --pele-border: var(--border, #4e4e4e); }
+ .pele .blue rect { fill: color-mix(in srgb, var(--info, #1b3857) 20%, var(--card, #121212)); }
+ .pele .teal rect { fill: color-mix(in srgb, var(--success, #174641) 20%, var(--card, #121212)); }
+ .pele .orange rect { fill: color-mix(in srgb, var(--warning, #573117) 20%, var(--card, #121212)); }
+ .pele .breaks rect { fill: var(--destructive-surface, #2e2021) !important; }
+ .pele .breaks text { fill: var(--destructive, #ff6463) !important; }
+}
+</style><text class="pele-title" font-weight="var(--_tw)" text-anchor="middle" xml:space="preserve"><tspan x="496.5" y="25.6">Capture a window, close it, then read its pixels</tspan></text><g transform="translate(0,36)"><g class="pele-clusters"><g class="pele-cluster pele-state-composite" data-id="legend"><rect x="255.96" y="8" width="728.16" height="130" rx="10" fill="var(--_a)" fill-opacity="0.5" stroke="var(--_b)"/><path d="M255.96,44H984.12" fill="none" stroke="var(--_b)"/><text class="pele-cluster-label" x="620.04" y="31.6" text-anchor="middle">Legend</text></g></g><g class="pele-edges" fill="none" stroke="var(--_l)" stroke-linecap="round"><g class="pele-edge pele-transition" data-id="edge0"><path d="M208.96,138L208.96,175"/><path class="pele-marker" d="M208.96,182L205.6,174L212.32,174Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge1"><path d="M179.15,226C179.15,235.25 107.15,235.25 107.15,244.5L107.15,288"/><path class="pele-marker" d="M107.15,295L103.79,287L110.51,287Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge2"><path d="M238.77,226C238.77,235.25 310.77,235.25 310.77,244.5L310.77,288"/><path class="pele-marker" d="M310.77,295L307.41,287L314.13,287Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge3"><path d="M310.77,339L310.77,401"/><path class="pele-marker" d="M310.77,408L307.41,400L314.13,400Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge4"><path d="M300.53,452C300.53,461.25 210.78,461.25 210.78,470.5L210.78,514"/><path class="pele-marker" d="M210.78,521L207.42,513L214.14,513Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge5"><path d="M321.01,452C321.01,461.25 410.76,461.25 410.76,470.5L410.76,514"/><path class="pele-marker" d="M410.76,521L407.4,513L414.12,513Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge6"><path d="M210.78,565L210.78,642"/><path class="pele-marker" d="M210.78,649L207.42,641L214.14,641Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge7"><path d="M410.76,565L410.76,642"/><path class="pele-marker" d="M410.76,649L407.4,641L414.12,641Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge8"><path d="M310.77,711L310.77,788"/><path class="pele-marker" d="M310.77,795L307.41,787L314.13,787Z" fill="var(--_l)" stroke="none"/></g></g><g class="pele-edge-labels" font-size="14"><g class="pele-edge-label" data-id="edge1"><rect x="63.85" y="246.5" width="86.6" height="21" rx="3" fill="var(--_bg)"/><text x="107.15" y="261.9" text-anchor="middle">opening fails</text></g><g class="pele-edge-label" data-id="edge2"><rect x="262.42" y="246.5" width="96.7" height="21" rx="3" fill="var(--_bg)"/><text x="310.77" y="261.9" text-anchor="middle">window opens</text></g><g class="pele-edge-label" data-id="edge3"><rect x="258.92" y="359.5" width="103.7" height="21" rx="3" fill="var(--_bg)"/><text x="310.77" y="374.9" text-anchor="middle">draw the image</text></g><g class="pele-edge-label" data-id="edge4"><rect x="151.92" y="472.5" width="117.72" height="21" rx="3" fill="var(--_bg)"/><text x="210.78" y="487.9" text-anchor="middle">capture succeeds</text></g><g class="pele-edge-label" data-id="edge5"><rect x="369.02" y="472.5" width="83.47" height="21" rx="3" fill="var(--_bg)"/><text x="410.76" y="487.9" text-anchor="middle">capture fails</text></g><g class="pele-edge-label" data-id="edge6"><rect x="120.79" y="585.5" width="179.98" height="36" rx="3" fill="var(--_bg)"/><text text-anchor="middle" xml:space="preserve"><tspan x="210.78" y="599.4">continue without closing the</tspan><tspan x="210.78" y="617.4">window</tspan></text></g><g class="pele-edge-label" data-id="edge7"><rect x="320.77" y="585.5" width="179.98" height="36" rx="3" fill="var(--_bg)"/><text text-anchor="middle" xml:space="preserve"><tspan x="410.76" y="599.4">continue without closing the</tspan><tspan x="410.76" y="617.4">window</tspan></text></g><g class="pele-edge-label" data-id="edge8"><rect x="215.73" y="731.5" width="190.07" height="36" rx="3" fill="var(--_bg)"/><text text-anchor="middle" xml:space="preserve"><tspan x="310.77" y="745.4">print captured pixels or report</tspan><tspan x="310.77" y="763.4">the capture error</tspan></text></g></g><g class="pele-nodes"><g class="pele-node pele-state blue bugPath" data-id="s0" transform="translate(208.96,204)"><rect x="-81.81" y="-22" width="163.62" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Opening a window</text></g><g class="pele-node pele-state orange" data-id="s1" transform="translate(107.15,317)"><rect x="-99.15" y="-22" width="198.3" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Window could not open</text></g><g class="pele-node pele-state blue bugPath" data-id="s2" transform="translate(310.77,317)"><rect x="-64.46" y="-22" width="128.93" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Window open</text></g><g class="pele-node pele-state blue bugPath" data-id="s3" transform="translate(310.77,430)"><rect x="-62.24" y="-22" width="124.48" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Image drawn</text></g><g class="pele-node pele-state blue bugPath" data-id="s4" transform="translate(210.78,543)"><rect x="-72.03" y="-22" width="144.06" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Snapshot ready</text></g><g class="pele-node pele-state blue" data-id="s5" transform="translate(410.76,543)"><rect x="-65.8" y="-22" width="131.6" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Capture failed</text></g><g class="pele-node pele-state blue breaks bugPath" data-id="s6" transform="translate(310.77,680)"><rect x="-113.37" y="-31" width="226.74" height="62" rx="10" fill="var(--_s)" stroke="var(--_b)" style="fill:#ffecee;stroke:#e72e3b;stroke-width:2.5px;"/><text class="pele-label" style="fill:#cd2834;" text-anchor="middle" xml:space="preserve"><tspan x="0" y="-4.9">Reporting while the window</tspan><tspan x="0" y="16.1">remains open</tspan></text></g><g class="pele-node pele-state breaks" data-id="s7" transform="translate(310.77,826)"><rect x="-103.59" y="-31" width="207.18" height="62" rx="10" fill="var(--_s)" stroke="var(--_b)" style="fill:#ffecee;stroke:#e72e3b;stroke-width:2.5px;"/><text class="pele-label" style="fill:#cd2834;" text-anchor="middle" xml:space="preserve"><tspan x="0" y="-4.9">Reported without closing</tspan><tspan x="0" y="16.1">the window</tspan></text></g><g class="pele-node pele-state-start" data-id="root_start" transform="translate(208.96,131)"><circle r="7" fill="var(--_l)"/></g><g class="pele-node pele-state blue" data-id="lg0" transform="translate(327.53,91)"><rect x="-55.57" y="-22" width="111.14" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">in progress</text></g><g class="pele-node pele-state orange" data-id="lg1" transform="translate(458.22,91)"><rect x="-35.12" y="-22" width="70.24" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">failed</text></g><g class="pele-node pele-state breaks" data-id="lg2" transform="translate(637.81,91)"><rect x="-104.47" y="-22" width="208.94" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)" style="fill:#ffecee;stroke:#e72e3b;stroke-width:2.5px;"/><text class="pele-label" style="fill:#cd2834;" x="0" y="5.6" text-anchor="middle">Breaks ReportAfterClose</text></g><g class="pele-node pele-state bugPath" data-id="lg3" transform="translate(875.2,91)"><rect x="-92.92" y="-31" width="185.84" height="62" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" text-anchor="middle" xml:space="preserve"><tspan x="0" y="-4.9">Path to the</tspan><tspan x="0" y="16.1">ReportAfterClose bug</tspan></text></g></g></g></svg></div>
+    <details class="source"><summary>Mermaid source</summary><pre><code class="language-mermaid">---
+title: &quot;Capture a window, close it, then read its pixels&quot;
+---
+stateDiagram-v2
+  state &quot;Legend&quot; as legend {
+    lg0: in progress
+    lg1: failed
+    lg2: Breaks ReportAfterClose
+    lg3: Path to the ReportAfterClose bug
+  }
+  class lg0 blue
+  class lg1 orange
+  class lg2 breaks
+  class lg3 bugPath
+  s0: Opening a window
+  s1: Window could not open
+  s2: Window open
+  s3: Image drawn
+  s4: Snapshot ready
+  s5: Capture failed
+  s6: Reporting while the window remains open
+  s7: Reported without closing the window
+  [*] --&gt; s0
+  s0 --&gt; s1: opening fails
+  s0 --&gt; s2: window opens
+  s2 --&gt; s3: draw the image
+  s3 --&gt; s4: capture succeeds
+  s3 --&gt; s5: capture fails
+  s4 --&gt; s6: continue without closing the window
+  s5 --&gt; s6: continue without closing the window
+  s6 --&gt; s7: print captured pixels or report the capture error
+  classDef breaks fill:#ffecee,stroke:#e72e3b,stroke-width:2.5px,color:#cd2834
+  class s0 blue
+  class s0 bugPath
+  class s1 orange
+  class s2 blue
+  class s2 bugPath
+  class s3 blue
+  class s3 bugPath
+  class s4 blue
+  class s4 bugPath
+  class s5 blue
+  class s6 blue
+  class s6 breaks
+  class s6 bugPath
+  class s7 breaks
+</code></pre></details></details><details><summary>X11 error handling · OverwriteFirstError</summary>
+    <pre># X11ErrorTrap
+
+TLC reached 54 states and 66 steps. The chart draws 8 states and 8 arrows.
+The chart does not draw 25 steps that stay in one chart state.
+
+## FirstErrorWins breaks
+The shortest path has 4 steps:
+0. Previous handler active
+1. publish capture context: Capture context published
+2. install capture handler: Capture handler active
+3. capture request fails: First capture error retained
+4. another error replaces the first: First capture error overwritten
+
+## Rules that hold
+RestoredHandler, NoDeadlock
+</pre><div class="chart-tools"><button data-zoom="in">Zoom in</button><button data-zoom="fit">Fit</button><span>Scroll to pan when enlarged.</span></div>
+    <div class="diagram compact"><svg xmlns="http://www.w3.org/2000/svg" class="pele pele-state" viewBox="0 0 1123 966" width="1123" height="966" style="max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_tw:var(--pele-title-weight,bold);--_fm:var(--pele-font-mono,monospace);font:16px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,sans-serif)" fill="var(--_fg)" role="graphics-document document" aria-roledescription="state"><style>
+.pele { --pele-bg: transparent; --pele-fg: var(--foreground, #1c1c1c);
+  --pele-muted: var(--muted-foreground, #656565); --pele-line: var(--muted-foreground, #808080);
+  --pele-surface: var(--card, #fcfcfc); --pele-surface-alt: var(--secondary, #f1f1f1);
+  --pele-border: var(--border, #c9c9c9); --pele-font: var(--font-sans, sans-serif); }
+.pele .blue rect { fill: color-mix(in srgb, var(--info, #c3e0ff) 20%, var(--card, #ffffff)); }
+.pele .teal rect { fill: color-mix(in srgb, var(--success, #bfe3df) 20%, var(--card, #ffffff)); }
+.pele .orange rect { fill: color-mix(in srgb, var(--warning, #f0d3bf) 20%, var(--card, #ffffff)); }
+.pele .breaks rect { fill: var(--destructive-surface, #ffecee) !important;
+  stroke: var(--destructive, #e72e3b) !important; stroke-width: 2.5px !important; }
+.pele .breaks text { fill: var(--destructive, #cd2834) !important; }
+.pele .mayBreak rect { fill: var(--warning-surface, #fff3e6) !important;
+  stroke: var(--warning, #e8730c) !important; stroke-width: 2.5px !important; }
+.pele .mayBreak text { fill: var(--warning, #b85a06) !important; }
+.pele .bugPath rect { stroke: var(--info, #1680f3) !important; stroke-width: 2.5px !important; }
+.pele .repeats rect { stroke: var(--chart-3, #9b35d6) !important; stroke-width: 2.5px !important; stroke-dasharray: 6 3; }
+@media (prefers-color-scheme: dark) {
+ .pele { --pele-fg: var(--foreground, #f5f5f5); --pele-muted: var(--muted-foreground, #acacac);
+   --pele-line: var(--muted-foreground, #939393); --pele-surface: var(--card, #121212);
+   --pele-surface-alt: var(--secondary, #2c2c2c); --pele-border: var(--border, #4e4e4e); }
+ .pele .blue rect { fill: color-mix(in srgb, var(--info, #1b3857) 20%, var(--card, #121212)); }
+ .pele .teal rect { fill: color-mix(in srgb, var(--success, #174641) 20%, var(--card, #121212)); }
+ .pele .orange rect { fill: color-mix(in srgb, var(--warning, #573117) 20%, var(--card, #121212)); }
+ .pele .breaks rect { fill: var(--destructive-surface, #2e2021) !important; }
+ .pele .breaks text { fill: var(--destructive, #ff6463) !important; }
+}
+</style><text class="pele-title" font-weight="var(--_tw)" text-anchor="middle" xml:space="preserve"><tspan x="561.5" y="25.6">Install, drain, and restore the capture error handler</tspan></text><g transform="translate(0,36)"><g class="pele-clusters"><g class="pele-cluster pele-state-composite" data-id="legend"><rect x="359.97" y="8" width="754.77" height="130" rx="10" fill="var(--_a)" fill-opacity="0.5" stroke="var(--_b)"/><path d="M359.97,44H1114.73" fill="none" stroke="var(--_b)"/><text class="pele-cluster-label" x="737.35" y="31.6" text-anchor="middle">Legend</text></g></g><g class="pele-edges" fill="none" stroke="var(--_l)" stroke-linecap="round"><g class="pele-edge pele-transition" data-id="edge0"><path d="M312.97,138L312.97,175"/><path class="pele-marker" d="M312.97,182L309.61,174L316.33,174Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge1"><path d="M312.97,226L312.97,288"/><path class="pele-marker" d="M312.97,295L309.61,287L316.33,287Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge2"><path d="M312.97,339L312.97,401"/><path class="pele-marker" d="M312.97,408L309.61,400L316.33,400Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge3"><path d="M268.49,452C268.49,461.25 204.63,461.25 204.63,470.5L204.63,514"/><path class="pele-marker" d="M204.63,521L201.27,513L207.99,513Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge4"><path d="M357.45,452C357.45,486.5 421.3,486.5 421.3,521L421.3,636"/><path class="pele-marker" d="M421.3,643L417.94,635L424.66,635Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge5"><path d="M107.76,565L107.76,627"/><path class="pele-marker" d="M107.76,634L104.4,626L111.12,626Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge6"><path d="M301.5,565L301.5,608.5C301.5,619.25 379.14,619.25 379.14,630L379.14,636"/><path class="pele-marker" d="M379.14,643L375.78,635L382.5,635Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge7"><path d="M405.84,687L405.84,758"/><path class="pele-marker" d="M405.84,765L402.48,757L409.2,757Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge8"><path d="M405.84,809L405.84,871"/><path class="pele-marker" d="M405.84,878L402.48,870L409.2,870Z" fill="var(--_l)" stroke="none"/></g></g><g class="pele-edge-labels" font-size="14"><g class="pele-edge-label" data-id="edge1"><rect x="236.99" y="246.5" width="151.96" height="21" rx="3" fill="var(--_bg)"/><text x="312.97" y="261.9" text-anchor="middle">publish capture context</text></g><g class="pele-edge-label" data-id="edge2"><rect x="240.49" y="359.5" width="144.95" height="21" rx="3" fill="var(--_bg)"/><text x="312.97" y="374.9" text-anchor="middle">install capture handler</text></g><g class="pele-edge-label" data-id="edge3"><rect x="137.6" y="472.5" width="134.06" height="21" rx="3" fill="var(--_bg)"/><text x="204.63" y="487.9" text-anchor="middle">capture request fails</text></g><g class="pele-edge-label" data-id="edge4"><rect x="345.32" y="532.5" width="151.96" height="21" rx="3" fill="var(--_bg)"/><text x="421.3" y="547.9" text-anchor="middle">finish pending requests</text></g><g class="pele-edge-label" data-id="edge5"><rect x="10" y="585.5" width="195.52" height="21" rx="3" fill="var(--_bg)"/><text x="107.76" y="600.9" text-anchor="middle">another error replaces the first</text></g><g class="pele-edge-label" data-id="edge6"><rect x="225.52" y="585.5" width="151.96" height="21" rx="3" fill="var(--_bg)"/><text x="301.5" y="600.9" text-anchor="middle">finish pending requests</text></g><g class="pele-edge-label" data-id="edge7"><rect x="326.36" y="716.5" width="158.95" height="21" rx="3" fill="var(--_bg)"/><text x="405.84" y="731.9" text-anchor="middle">restore previous handler</text></g><g class="pele-edge-label" data-id="edge8"><rect x="336.86" y="829.5" width="137.95" height="21" rx="3" fill="var(--_bg)"/><text x="405.84" y="844.9" text-anchor="middle">clear capture context</text></g></g><g class="pele-nodes"><g class="pele-node pele-state blue bugPath" data-id="s0" transform="translate(312.97,204)"><rect x="-99.14" y="-22" width="198.29" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Previous handler active</text></g><g class="pele-node pele-state blue bugPath" data-id="s1" transform="translate(312.97,317)"><rect x="-108.94" y="-22" width="217.87" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Capture context published</text></g><g class="pele-node pele-state blue bugPath" data-id="s2" transform="translate(312.97,430)"><rect x="-96.48" y="-22" width="192.96" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Capture handler active</text></g><g class="pele-node pele-state blue bugPath" data-id="s3" transform="translate(204.63,543)"><rect x="-110.7" y="-22" width="221.39" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">First capture error retained</text></g><g class="pele-node pele-state blue" data-id="s4" transform="translate(405.84,665)"><rect x="-78.7" y="-22" width="157.39" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Requests drained</text></g><g class="pele-node pele-state breaks bugPath" data-id="s5" transform="translate(107.76,665)"><rect x="-79.57" y="-31" width="159.14" height="62" rx="10" fill="var(--_s)" stroke="var(--_b)" style="fill:#ffecee;stroke:#e72e3b;stroke-width:2.5px;"/><text class="pele-label" style="fill:#cd2834;" text-anchor="middle" xml:space="preserve"><tspan x="0" y="-4.9">First capture error</tspan><tspan x="0" y="16.1">overwritten</tspan></text></g><g class="pele-node pele-state blue" data-id="s6" transform="translate(405.84,787)"><rect x="-107.59" y="-22" width="215.18" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Previous handler restored</text></g><g class="pele-node pele-state teal" data-id="s7" transform="translate(405.84,900)"><rect x="-100.93" y="-22" width="201.86" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Capture context cleared</text></g><g class="pele-node pele-state-start" data-id="root_start" transform="translate(312.97,131)"><circle r="7" fill="var(--_l)"/></g><g class="pele-node pele-state teal" data-id="lg0" transform="translate(419.53,91)"><rect x="-43.57" y="-22" width="87.14" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">finished</text></g><g class="pele-node pele-state blue" data-id="lg1" transform="translate(558.67,91)"><rect x="-55.57" y="-22" width="111.14" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">in progress</text></g><g class="pele-node pele-state breaks" data-id="lg2" transform="translate(748.46,91)"><rect x="-94.22" y="-22" width="188.45" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)" style="fill:#ffecee;stroke:#e72e3b;stroke-width:2.5px;"/><text class="pele-label" style="fill:#cd2834;" x="0" y="5.6" text-anchor="middle">Breaks FirstErrorWins</text></g><g class="pele-node pele-state bugPath" data-id="lg3" transform="translate(990.71,91)"><rect x="-108.02" y="-31" width="216.05" height="62" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" text-anchor="middle" xml:space="preserve"><tspan x="0" y="-4.9">Path to the FirstErrorWins</tspan><tspan x="0" y="16.1">bug</tspan></text></g></g></g></svg></div>
+    <details class="source"><summary>Mermaid source</summary><pre><code class="language-mermaid">---
+title: &quot;Install, drain, and restore the capture error handler&quot;
+---
+stateDiagram-v2
+  state &quot;Legend&quot; as legend {
+    lg0: finished
+    lg1: in progress
+    lg2: Breaks FirstErrorWins
+    lg3: Path to the FirstErrorWins bug
+  }
+  class lg0 teal
+  class lg1 blue
+  class lg2 breaks
+  class lg3 bugPath
+  s0: Previous handler active
+  s1: Capture context published
+  s2: Capture handler active
+  s3: First capture error retained
+  s4: Requests drained
+  s5: First capture error overwritten
+  s6: Previous handler restored
+  s7: Capture context cleared
+  [*] --&gt; s0
+  s0 --&gt; s1: publish capture context
+  s1 --&gt; s2: install capture handler
+  s2 --&gt; s3: capture request fails
+  s2 --&gt; s4: finish pending requests
+  s3 --&gt; s5: another error replaces the first
+  s3 --&gt; s4: finish pending requests
+  s4 --&gt; s6: restore previous handler
+  s6 --&gt; s7: clear capture context
+  classDef breaks fill:#ffecee,stroke:#e72e3b,stroke-width:2.5px,color:#cd2834
+  class s0 blue
+  class s0 bugPath
+  class s1 blue
+  class s1 bugPath
+  class s2 blue
+  class s2 bugPath
+  class s3 blue
+  class s3 bugPath
+  class s4 blue
+  class s5 breaks
+  class s5 bugPath
+  class s6 blue
+  class s7 teal
+</code></pre></details></details><details><summary>X11 error handling · SkipRestore</summary>
+    <pre># X11ErrorTrap
+
+TLC reached 54 states and 66 steps. The chart draws 7 states and 7 arrows.
+The chart does not draw 21 steps that stay in one chart state.
+
+## RestoredHandler breaks
+The shortest path has 5 steps:
+0. Previous handler active
+1. publish capture context: Capture context published
+2. install capture handler: Capture handler active
+3. finish pending requests: Requests drained
+4. skip restoring the handler: Capture handler left installed
+5. clear capture context: Handler points at cleared context
+
+## Rules that hold
+FirstErrorWins, NoDeadlock
+</pre><div class="chart-tools"><button data-zoom="in">Zoom in</button><button data-zoom="fit">Fit</button><span>Scroll to pan when enlarged.</span></div>
+    <div class="diagram compact"><svg xmlns="http://www.w3.org/2000/svg" class="pele pele-state" viewBox="0 0 1024 984" width="1024" height="984" style="max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_tw:var(--pele-title-weight,bold);--_fm:var(--pele-font-mono,monospace);font:16px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,sans-serif)" fill="var(--_fg)" role="graphics-document document" aria-roledescription="state"><style>
+.pele { --pele-bg: transparent; --pele-fg: var(--foreground, #1c1c1c);
+  --pele-muted: var(--muted-foreground, #656565); --pele-line: var(--muted-foreground, #808080);
+  --pele-surface: var(--card, #fcfcfc); --pele-surface-alt: var(--secondary, #f1f1f1);
+  --pele-border: var(--border, #c9c9c9); --pele-font: var(--font-sans, sans-serif); }
+.pele .blue rect { fill: color-mix(in srgb, var(--info, #c3e0ff) 20%, var(--card, #ffffff)); }
+.pele .teal rect { fill: color-mix(in srgb, var(--success, #bfe3df) 20%, var(--card, #ffffff)); }
+.pele .orange rect { fill: color-mix(in srgb, var(--warning, #f0d3bf) 20%, var(--card, #ffffff)); }
+.pele .breaks rect { fill: var(--destructive-surface, #ffecee) !important;
+  stroke: var(--destructive, #e72e3b) !important; stroke-width: 2.5px !important; }
+.pele .breaks text { fill: var(--destructive, #cd2834) !important; }
+.pele .mayBreak rect { fill: var(--warning-surface, #fff3e6) !important;
+  stroke: var(--warning, #e8730c) !important; stroke-width: 2.5px !important; }
+.pele .mayBreak text { fill: var(--warning, #b85a06) !important; }
+.pele .bugPath rect { stroke: var(--info, #1680f3) !important; stroke-width: 2.5px !important; }
+.pele .repeats rect { stroke: var(--chart-3, #9b35d6) !important; stroke-width: 2.5px !important; stroke-dasharray: 6 3; }
+@media (prefers-color-scheme: dark) {
+ .pele { --pele-fg: var(--foreground, #f5f5f5); --pele-muted: var(--muted-foreground, #acacac);
+   --pele-line: var(--muted-foreground, #939393); --pele-surface: var(--card, #121212);
+   --pele-surface-alt: var(--secondary, #2c2c2c); --pele-border: var(--border, #4e4e4e); }
+ .pele .blue rect { fill: color-mix(in srgb, var(--info, #1b3857) 20%, var(--card, #121212)); }
+ .pele .teal rect { fill: color-mix(in srgb, var(--success, #174641) 20%, var(--card, #121212)); }
+ .pele .orange rect { fill: color-mix(in srgb, var(--warning, #573117) 20%, var(--card, #121212)); }
+ .pele .breaks rect { fill: var(--destructive-surface, #2e2021) !important; }
+ .pele .breaks text { fill: var(--destructive, #ff6463) !important; }
+}
+</style><text class="pele-title" font-weight="var(--_tw)" text-anchor="middle" xml:space="preserve"><tspan x="512" y="25.6">Install, drain, and restore the capture error handler</tspan></text><g transform="translate(0,36)"><g class="pele-clusters"><g class="pele-cluster pele-state-composite" data-id="legend"><rect x="274.03" y="8" width="741.5" height="130" rx="10" fill="var(--_a)" fill-opacity="0.5" stroke="var(--_b)"/><path d="M274.03,44H1015.54" fill="none" stroke="var(--_b)"/><text class="pele-cluster-label" x="644.79" y="31.6" text-anchor="middle">Legend</text></g></g><g class="pele-edges" fill="none" stroke="var(--_l)" stroke-linecap="round"><g class="pele-edge pele-transition" data-id="edge0"><path d="M227.03,138L227.03,175"/><path class="pele-marker" d="M227.03,182L223.67,174L230.39,174Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge1"><path d="M227.03,226L227.03,288"/><path class="pele-marker" d="M227.03,295L223.67,287L230.39,287Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge2"><path d="M227.03,339L227.03,401"/><path class="pele-marker" d="M227.03,408L223.67,400L230.39,400Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge3"><path d="M182.55,452C182.55,461.25 118.7,461.25 118.7,470.5L118.7,514"/><path class="pele-marker" d="M118.7,521L115.34,513L122.06,513Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge4"><path d="M271.51,452C271.51,486.5 335.37,486.5 335.37,521L335.37,565C335.37,593 253.73,593 253.73,621L253.73,627"/><path class="pele-marker" d="M253.73,634L250.37,626L257.09,626Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge5"><path d="M118.7,565L118.7,608.5C118.7,615.44 200.34,615.44 200.34,622.38L200.34,627"/><path class="pele-marker" d="M200.34,634L196.98,626L203.7,626Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge6"><path d="M227.03,678L227.03,740"/><path class="pele-marker" d="M227.03,747L223.67,739L230.39,739Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-transition" data-id="edge7"><path d="M227.03,809L227.03,871"/><path class="pele-marker" d="M227.03,878L223.67,870L230.39,870Z" fill="var(--_l)" stroke="none"/></g></g><g class="pele-edge-labels" font-size="14"><g class="pele-edge-label" data-id="edge1"><rect x="151.05" y="246.5" width="151.96" height="21" rx="3" fill="var(--_bg)"/><text x="227.03" y="261.9" text-anchor="middle">publish capture context</text></g><g class="pele-edge-label" data-id="edge2"><rect x="154.56" y="359.5" width="144.95" height="21" rx="3" fill="var(--_bg)"/><text x="227.03" y="374.9" text-anchor="middle">install capture handler</text></g><g class="pele-edge-label" data-id="edge3"><rect x="51.67" y="472.5" width="134.06" height="21" rx="3" fill="var(--_bg)"/><text x="118.7" y="487.9" text-anchor="middle">capture request fails</text></g><g class="pele-edge-label" data-id="edge4"><rect x="259.39" y="532.5" width="151.96" height="21" rx="3" fill="var(--_bg)"/><text x="335.37" y="547.9" text-anchor="middle">finish pending requests</text></g><g class="pele-edge-label" data-id="edge5"><rect x="42.72" y="585.5" width="151.96" height="21" rx="3" fill="var(--_bg)"/><text x="118.7" y="600.9" text-anchor="middle">finish pending requests</text></g><g class="pele-edge-label" data-id="edge6"><rect x="144.45" y="698.5" width="165.18" height="21" rx="3" fill="var(--_bg)"/><text x="227.03" y="713.9" text-anchor="middle">skip restoring the handler</text></g><g class="pele-edge-label" data-id="edge7"><rect x="158.06" y="829.5" width="137.95" height="21" rx="3" fill="var(--_bg)"/><text x="227.03" y="844.9" text-anchor="middle">clear capture context</text></g></g><g class="pele-nodes"><g class="pele-node pele-state blue bugPath" data-id="s0" transform="translate(227.03,204)"><rect x="-99.14" y="-22" width="198.29" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Previous handler active</text></g><g class="pele-node pele-state blue bugPath" data-id="s1" transform="translate(227.03,317)"><rect x="-108.94" y="-22" width="217.87" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Capture context published</text></g><g class="pele-node pele-state blue bugPath" data-id="s2" transform="translate(227.03,430)"><rect x="-96.48" y="-22" width="192.96" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Capture handler active</text></g><g class="pele-node pele-state blue" data-id="s3" transform="translate(118.7,543)"><rect x="-110.7" y="-22" width="221.39" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">First capture error retained</text></g><g class="pele-node pele-state blue bugPath" data-id="s4" transform="translate(227.03,656)"><rect x="-78.7" y="-22" width="157.39" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">Requests drained</text></g><g class="pele-node pele-state blue bugPath" data-id="s5" transform="translate(227.03,778)"><rect x="-86.26" y="-31" width="172.51" height="62" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" text-anchor="middle" xml:space="preserve"><tspan x="0" y="-4.9">Capture handler left</tspan><tspan x="0" y="16.1">installed</tspan></text></g><g class="pele-node pele-state teal breaks bugPath" data-id="s6" transform="translate(227.03,909)"><rect x="-104.93" y="-31" width="209.86" height="62" rx="10" fill="var(--_s)" stroke="var(--_b)" style="fill:#ffecee;stroke:#e72e3b;stroke-width:2.5px;"/><text class="pele-label" style="fill:#cd2834;" text-anchor="middle" xml:space="preserve"><tspan x="0" y="-4.9">Handler points at cleared</tspan><tspan x="0" y="16.1">context</tspan></text></g><g class="pele-node pele-state-start" data-id="root_start" transform="translate(227.03,131)"><circle r="7" fill="var(--_l)"/></g><g class="pele-node pele-state teal" data-id="lg0" transform="translate(333.6,91)"><rect x="-43.57" y="-22" width="87.14" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">finished</text></g><g class="pele-node pele-state blue" data-id="lg1" transform="translate(472.74,91)"><rect x="-55.57" y="-22" width="111.14" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">in progress</text></g><g class="pele-node pele-state breaks" data-id="lg2" transform="translate(671.89,91)"><rect x="-103.58" y="-22" width="207.17" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)" style="fill:#ffecee;stroke:#e72e3b;stroke-width:2.5px;"/><text class="pele-label" style="fill:#cd2834;" x="0" y="5.6" text-anchor="middle">Breaks RestoredHandler</text></g><g class="pele-node pele-state bugPath" data-id="lg3" transform="translate(907.51,91)"><rect x="-92.03" y="-31" width="184.06" height="62" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" text-anchor="middle" xml:space="preserve"><tspan x="0" y="-4.9">Path to the</tspan><tspan x="0" y="16.1">RestoredHandler bug</tspan></text></g></g></g></svg></div>
+    <details class="source"><summary>Mermaid source</summary><pre><code class="language-mermaid">---
+title: &quot;Install, drain, and restore the capture error handler&quot;
+---
+stateDiagram-v2
+  state &quot;Legend&quot; as legend {
+    lg0: finished
+    lg1: in progress
+    lg2: Breaks RestoredHandler
+    lg3: Path to the RestoredHandler bug
+  }
+  class lg0 teal
+  class lg1 blue
+  class lg2 breaks
+  class lg3 bugPath
+  s0: Previous handler active
+  s1: Capture context published
+  s2: Capture handler active
+  s3: First capture error retained
+  s4: Requests drained
+  s5: Capture handler left installed
+  s6: Handler points at cleared context
+  [*] --&gt; s0
+  s0 --&gt; s1: publish capture context
+  s1 --&gt; s2: install capture handler
+  s2 --&gt; s3: capture request fails
+  s2 --&gt; s4: finish pending requests
+  s3 --&gt; s4: finish pending requests
+  s4 --&gt; s5: skip restoring the handler
+  s5 --&gt; s6: clear capture context
+  classDef breaks fill:#ffecee,stroke:#e72e3b,stroke-width:2.5px,color:#cd2834
+  class s0 blue
+  class s0 bugPath
+  class s1 blue
+  class s1 bugPath
+  class s2 blue
+  class s2 bugPath
+  class s3 blue
+  class s4 blue
+  class s4 bugPath
+  class s5 blue
+  class s5 bugPath
+  class s6 teal
+  class s6 breaks
+  class s6 bugPath
+</code></pre></details></details></details>
+<script>
+for (const button of document.querySelectorAll("[data-tab]")) button.addEventListener("click", () => {
+  for (const tab of document.querySelectorAll("[data-tab]")) tab.setAttribute("aria-selected", String(tab === button));
+  for (const panel of document.querySelectorAll('[role="tabpanel"]')) panel.hidden = panel.id !== "panel-" + button.dataset.tab;
+});
+for (const button of document.querySelectorAll("[data-zoom]")) button.addEventListener("click", () => {
+  const box = button.parentElement.nextElementSibling, svg = box.querySelector("svg");
+  if (button.dataset.zoom === "fit") { svg.style.width = ""; svg.style.maxWidth = "100%"; box.scrollTo(0,0); }
+  else { svg.style.width = svg.getBoundingClientRect().width * 1.25 + "px"; svg.style.maxWidth = "none"; }
+});
+</script></body></html>

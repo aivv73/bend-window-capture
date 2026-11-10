@@ -1,0 +1,34 @@
+---
+title: "Load the capture module before dispatching its effect"
+---
+stateDiagram-v2
+  state "Legend" as legend {
+    lg0: finished
+    lg1: in progress
+    lg2: Breaks UnsupportedReturnsENOTSUP
+    lg3: Path to the UnsupportedReturnsENOTSUP bug
+  }
+  class lg0 teal
+  class lg1 blue
+  class lg2 breaks
+  class lg3 bugPath
+  s0: Module loading
+  s1: Capture handler registered
+  s2: Window and unexpected error returned
+  s3: Window and unsupported error returned
+  s4: Native capture dispatched
+  [*] --> s0
+  s0 --> s1: initialize the module
+  s1 --> s3: return ENOTSUP and window
+  s1 --> s4: run native capture
+  s1 --> s2: return an unexpected error
+  classDef breaks fill:#ffecee,stroke:#e72e3b,stroke-width:2.5px,color:#cd2834
+  class s0 blue
+  class s0 bugPath
+  class s1 blue
+  class s1 bugPath
+  class s2 teal
+  class s2 breaks
+  class s2 bugPath
+  class s3 teal
+  class s4 teal

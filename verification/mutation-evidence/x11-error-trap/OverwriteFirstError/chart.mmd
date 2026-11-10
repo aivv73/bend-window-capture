@@ -1,0 +1,45 @@
+---
+title: "Install, drain, and restore the capture error handler"
+---
+stateDiagram-v2
+  state "Legend" as legend {
+    lg0: finished
+    lg1: in progress
+    lg2: Breaks FirstErrorWins
+    lg3: Path to the FirstErrorWins bug
+  }
+  class lg0 teal
+  class lg1 blue
+  class lg2 breaks
+  class lg3 bugPath
+  s0: Previous handler active
+  s1: Capture context published
+  s2: Capture handler active
+  s3: First capture error retained
+  s4: Requests drained
+  s5: First capture error overwritten
+  s6: Previous handler restored
+  s7: Capture context cleared
+  [*] --> s0
+  s0 --> s1: publish capture context
+  s1 --> s2: install capture handler
+  s2 --> s3: capture request fails
+  s2 --> s4: finish pending requests
+  s3 --> s5: another error replaces the first
+  s3 --> s4: finish pending requests
+  s4 --> s6: restore previous handler
+  s6 --> s7: clear capture context
+  classDef breaks fill:#ffecee,stroke:#e72e3b,stroke-width:2.5px,color:#cd2834
+  class s0 blue
+  class s0 bugPath
+  class s1 blue
+  class s1 bugPath
+  class s2 blue
+  class s2 bugPath
+  class s3 blue
+  class s3 bugPath
+  class s4 blue
+  class s5 breaks
+  class s5 bugPath
+  class s6 blue
+  class s7 teal

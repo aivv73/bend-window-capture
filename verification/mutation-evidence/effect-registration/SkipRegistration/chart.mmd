@@ -1,0 +1,22 @@
+---
+title: "Load the capture module before dispatching its effect"
+---
+stateDiagram-v2
+  state "Legend" as legend {
+    lg0: in progress
+    lg1: Breaks NoDeadlock or ReadyHasHandler
+    lg2: Path to the NoDeadlock or ReadyHasHandler bug
+  }
+  class lg0 blue
+  class lg1 breaks
+  class lg2 bugPath
+  s0: Module loading
+  s1: Capture handler missing
+  [*] --> s0
+  s0 --> s1: module loads without registering capture
+  classDef breaks fill:#ffecee,stroke:#e72e3b,stroke-width:2.5px,color:#cd2834
+  class s0 blue
+  class s0 bugPath
+  class s1 blue
+  class s1 breaks
+  class s1 bugPath

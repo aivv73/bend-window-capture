@@ -1,0 +1,22 @@
+---
+title: "Load the capture module before dispatching its effect"
+---
+stateDiagram-v2
+  state "Legend" as legend {
+    lg0: finished
+    lg1: in progress
+  }
+  class lg0 teal
+  class lg1 blue
+  s0: Module loading
+  s1: Capture handler registered
+  s2: Window and unsupported error returned
+  s3: Native capture dispatched
+  [*] --> s0
+  s0 --> s1: initialize the module
+  s1 --> s2: return ENOTSUP and window
+  s1 --> s3: run native capture
+  class s0 blue
+  class s1 blue
+  class s2 teal
+  class s3 teal

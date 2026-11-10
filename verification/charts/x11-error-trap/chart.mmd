@@ -1,0 +1,32 @@
+---
+title: "Install, drain, and restore the capture error handler"
+---
+stateDiagram-v2
+  state "Legend" as legend {
+    lg0: finished
+    lg1: in progress
+  }
+  class lg0 teal
+  class lg1 blue
+  s0: Previous handler active
+  s1: Capture context published
+  s2: Capture handler active
+  s3: First capture error retained
+  s4: Requests drained
+  s5: Previous handler restored
+  s6: Capture context cleared
+  [*] --> s0
+  s0 --> s1: publish capture context
+  s1 --> s2: install capture handler
+  s2 --> s3: capture request fails
+  s2 --> s4: finish pending requests
+  s3 --> s4: finish pending requests
+  s4 --> s5: restore previous handler
+  s5 --> s6: clear capture context
+  class s0 blue
+  class s1 blue
+  class s2 blue
+  class s3 blue
+  class s4 blue
+  class s5 blue
+  class s6 teal

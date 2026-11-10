@@ -1,3 +1,4 @@
 /build/
 /dist/
 *.gpu
+/verification/__pycache__/
