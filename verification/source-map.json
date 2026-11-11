@@ -37,10 +37,10 @@
     }
   },
   "check-runner": {
-    "sync_commit": "5668443425998fa013ca43b6e5af5e6697d25fed",
+    "sync_commit": "44290d14ab8090abfeaafe1109ec3bcab0d24498",
     "files": {
       "scripts/check.sh": "1ddc6e727419fcc38acfb5e40ae3b032586f4ada53d096b5ce28f821067cd2a5",
-      ".github/workflows/check.yml": "ddd4f74b981df41fe0f2a035d61ff5f6bad52218885ceaa1805397fb497e05f7"
+      ".github/workflows/check.yml": "bba79ab7e8eba65f7509572e1d731ee52aa6a448b40dbb6bf96757cafed5f9d5"
     }
   }
 }
