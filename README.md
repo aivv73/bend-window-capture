@@ -37,7 +37,7 @@ Import the published [BendHub package](https://hub.bend-lang.com/n/bend-window-c
 
 ```python
 import Base
-import bend-window-capture@0.1.0.3/capture.bend as C
+import bend-window-capture@0.1.0.4/capture.bend as C
 ```
 
 For a local copy, keep `capture.bend`, `capture.c`, and `capture.js` together and import the module from your application:
