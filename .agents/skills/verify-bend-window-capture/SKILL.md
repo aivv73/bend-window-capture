@@ -17,7 +17,7 @@ The helper uses `XVFB_BIN` when set, then `Xvfb` on PATH, then the user-cache bi
 ./.agents/skills/verify-bend-window-capture/scripts/control.py setup-xvfb
 ```
 
-This downloads the package selected by the configured pacman repositories, verifies its SHA-256 against their local metadata, and extracts only Xvfb into the user cache. It does not install a system package. Other hosts can install Xvfb with their package manager or set `XVFB_BIN` to an executable. Missing shared libraries or XKB data remain unmet prerequisites; do not substitute a mock server.
+This downloads the package selected by the configured pacman repositories, verifies its SHA-256 against their local metadata, and extracts only Xvfb into the user cache. Missing or corrupt archives are downloaded again; only verified complete downloads replace the cache file. It does not install a system package. Other hosts can install Xvfb with their package manager or set `XVFB_BIN` to an executable. Missing shared libraries or XKB data remain unmet prerequisites; do not substitute a mock server.
 
 Prepare a fresh run:
 
@@ -41,7 +41,7 @@ Run this read-only build check before the first drive and whenever anything look
 "$bwc_control" doctor --run-dir "$bwc_run_dir"
 ```
 
-Require `healthy: true`, Bend 2.0.40, matching source and binary hashes, and zero active owned instances. Each drive repeats this check and then health-checks its fresh display: the server PID must match its X11 lock, its screen must be 800×600×24 TrueColor, and its window list must be empty.
+Require `healthy: true`, Bend 2.0.40, matching source and binary hashes, and zero active owned instances. Each drive repeats this check and then health-checks its fresh display: Xvfb allocates the display itself using `-displayfd`, only the owned server can write the private allocation pipe, clients authenticate with the generated cookie, its screen must be 800×600×24 TrueColor, and its window list must be empty.
 
 A changed source file or compiled driver invalidates the prepared build. Preserve the evidence, run Cleanup, and launch into a new directory. A failed drive records a display doctor result when the server is still available, then destroys that display. The next drive starts from a new, health-checked instance. Do not reuse a failed desktop state.
 
@@ -62,7 +62,7 @@ Exercise the remaining library features with:
 "$bwc_control" drive --run-dir "$bwc_run_dir" --feature events
 ```
 
-Require exit code 0 and `PASS` with a per-drive evidence directory. The example command must print `64x64 16711680 65280 255 16777215`; the check-script entry prints its existing PASS line.
+Require exit code 0 and `PASS` with a per-drive evidence directory. The binary example uses default runtime options with no `BENDRTS` override; the other drives limit their verification consumers to one thread. `command.json` records the effective `BENDRTS` value. The example command must print `64x64 16711680 65280 255 16777215`; the check-script entry prints its existing PASS line.
 
 The source-only command `bend examples/capture.bend` is not a usable X11 entry point with this compiler: it reports `Window.open: no display` and exits 95 (ENOTSUP), including on a healthy private display. The README now builds a native binary first. To reproduce this known limitation, use `drive --run-dir "$bwc_run_dir" --feature example --entry bend`; the helper must report FAIL and preserve the nonzero exit, not relabel it a successful capture. Cleanup that run afterward.
 
@@ -86,7 +86,7 @@ The verified environment is a headless Xvfb server without a window manager. The
 
 ## Cleanup
 
-Every drive stops its own consumer and Xvfb server in `finally` and removes that drive's authentication and scratch state. Shutdown gives the process group up to two seconds to exit before escalation. A retained X11 lock or socket makes the drive fail and is recorded in `display-cleanup.json`. At the end of the run, including after failures, execute:
+Every drive stops its own consumer and Xvfb server in `finally` and removes that drive's authentication and scratch state. Shutdown gives the process group up to two seconds to exit before escalation. An owned X11 lock or socket left behind makes the drive fail and is recorded in `display-cleanup.json`. At the end of the run, including after failures, execute:
 
 ```sh
 "$bwc_control" cleanup --run-dir "$bwc_run_dir"

@@ -52,9 +52,13 @@ function* charts(folder) {
 const files = [...charts(path.join(root, "verification/charts")),
   ...charts(path.join(root, "verification/mutation-evidence"))];
 for (const file of files) {
-  const { svg } = render(fs.readFileSync(file, "utf8"),
-    { limit: 1_000_000, outputLimit: 8_000_000, maxEdges: 10_000 });
-  fs.writeFileSync(file.replace(/\.mmd$/, ".svg"), svg.replace(/(<svg\b[^>]*>)/, (tag) => `${tag}<style>${style}</style>`));
+  try {
+    const { svg } = render(fs.readFileSync(file, "utf8"),
+      { limit: 1_000_000, outputLimit: 8_000_000, maxEdges: 10_000 });
+    fs.writeFileSync(file.replace(/\.mmd$/, ".svg"), svg.replace(/(<svg\b[^>]*>)/, (tag) => `${tag}<style>${style}</style>`));
+  } catch (error) {
+    throw new Error(`Cannot render ${file}`, { cause: error });
+  }
 }
 console.log(`Rendered ${files.length} charts with pele@1.9.0`);
 

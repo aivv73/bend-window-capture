@@ -20,7 +20,7 @@ Preconditions:
 - Launch and Doctor pass with the pinned compiler and real X11 prerequisites.
 - No application instance is shared between commands.
 
-- **Compiled example.** Run `"$bwc_control" drive --run-dir "$bwc_run_dir" --feature example --entry binary`. Require exit 0 and the exact stdout line `64x64 16711680 65280 255 16777215`.
+- **Compiled example.** Run `"$bwc_control" drive --run-dir "$bwc_run_dir" --feature example --entry binary`. The prepared binary runs with default runtime options, without `+RTS` arguments or a `BENDRTS` override. Require exit 0 and the exact stdout line `64x64 16711680 65280 255 16777215`.
 - **Project check.** Run `"$bwc_control" drive --run-dir "$bwc_run_dir" --feature example --entry check`. Require `ALL PROOFS CHECK` and `PASS: dimensions, RGB quadrants, row order, and pixels after close`.
 - **Proof.** In each printed evidence directory, require `result.json` with `passed: true`, the real command and output files, and `window-after.stdout.txt` containing an empty `windows` list. Retain both native entry-point results.
 

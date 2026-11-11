@@ -71,6 +71,107 @@ class DownloadTests(unittest.TestCase):
             self.assertEqual(list(cache.iterdir()), [jar])
 
 
+class XvfbDownloadTests(unittest.TestCase):
+    def provision(self, cache, data, response):
+        metadata = f"xorg-server-xvfb 1 {hashlib.sha256(data).hexdigest()} https://example.invalid/xvfb.pkg.tar.zst\n"
+
+        def extract(*args, **kwargs):
+            binary = cache / "usr/bin/Xvfb"
+            binary.parent.mkdir(parents=True, exist_ok=True)
+            binary.write_text("#!/bin/sh\nexit 0\n")
+            binary.chmod(0o755)
+
+        with mock.patch.object(control, "CACHE", cache), \
+             mock.patch.object(control.platform, "machine", return_value="x86_64"), \
+             mock.patch.object(control.shutil, "which", side_effect=lambda name: "/usr/bin/pacman" if name == "pacman" else None), \
+             mock.patch.object(control.subprocess, "check_output", return_value=metadata), \
+             mock.patch.object(control.subprocess, "run", side_effect=extract) as extraction, \
+             mock.patch.object(control.urllib.request, "urlopen", return_value=response), \
+             mock.patch.dict(os.environ, {"XVFB_BIN": str(cache / "usr/bin/Xvfb")}):
+            control.setup_xvfb()
+        return extraction
+
+    def test_corrupt_archive_is_replaced_without_manual_cache_deletion(self):
+        with tempfile.TemporaryDirectory() as directory:
+            cache = Path(directory)
+            archive = cache / "xvfb.pkg.tar.zst"
+            archive.write_bytes(b"truncated")
+            response = io.BytesIO(b"verified archive")
+            self.provision(cache, b"verified archive", response)
+            self.assertEqual(archive.read_bytes(), b"verified archive")
+            self.assertTrue(response.closed)
+
+    def test_invalid_download_is_not_published_or_extracted(self):
+        with tempfile.TemporaryDirectory() as directory:
+            cache = Path(directory)
+            with self.assertRaisesRegex(RuntimeError, "SHA-256"):
+                self.provision(cache, b"verified archive", io.BytesIO(b"wrong archive"))
+            self.assertEqual(list(cache.iterdir()), [])
+
+    def test_interruption_does_not_publish_a_partial_archive(self):
+        with tempfile.TemporaryDirectory() as directory:
+            cache = Path(directory)
+            write = Path.write_bytes
+
+            def interrupted(path, data):
+                write(path, data[:3])
+                raise InterruptedError("interrupted archive write")
+
+            with mock.patch.object(Path, "write_bytes", interrupted):
+                with self.assertRaises(InterruptedError):
+                    self.provision(cache, b"verified archive", io.BytesIO(b"verified archive"))
+            self.assertEqual(list(cache.iterdir()), [])
+
+
+class DisplayAllocationTests(unittest.TestCase):
+    def test_concurrent_runs_get_different_authenticated_displays(self):
+        if not sys.platform.startswith("linux") or not shutil.which("clang") or not shutil.which("xauth"):
+            self.skipTest("requires Linux, Clang, xauth, and Xvfb")
+        try:
+            server = control.xvfb_path()
+        except RuntimeError as error:
+            self.skipTest(str(error))
+        with tempfile.TemporaryDirectory() as directory:
+            base = Path(directory)
+            inspector = base / "x11"
+            subprocess.run(["clang", str(control.SKILL / "scripts/x11.c"), "-o", str(inspector), "-lX11"], check=True)
+            runs = []
+            for index in range(2):
+                evidence = base / str(index)
+                evidence.mkdir()
+                scratch = base / f"bwc-live-{index}"
+                (scratch / "bin").mkdir(parents=True)
+                (scratch / ".owner").write_text(str(index))
+                shutil.copy2(inspector, scratch / "bin/x11")
+                control.save(evidence / "session.json", {"scratch": str(scratch), "owner": str(index)})
+                control.save(evidence / "build.json", {"xvfb": server})
+                runs.append(control.Run(evidence))
+            start = threading.Barrier(2)
+            active = threading.Barrier(2)
+            local = threading.local()
+            execute = subprocess.run
+
+            def synchronized_auth(args, **kwargs):
+                if args[0] == "xauth" and not getattr(local, "started", False):
+                    local.started = True
+                    start.wait(timeout=5)
+                return execute(args, **kwargs)
+
+            def open_display(run):
+                with control.display(run, run.directory) as env:
+                    active.wait(timeout=5)
+                    return env["DISPLAY"]
+
+            try:
+                with mock.patch.object(control.subprocess, "run", side_effect=synchronized_auth), \
+                     ThreadPoolExecutor(max_workers=2) as workers:
+                    displays = list(workers.map(open_display, runs))
+                self.assertEqual(len(set(displays)), 2)
+            finally:
+                for run in runs:
+                    control.cleanup(run.directory)
+
+
 class ShutdownTests(unittest.TestCase):
     def test_slow_termination_gets_time_to_remove_its_resources(self):
         with tempfile.TemporaryDirectory() as directory:

@@ -152,9 +152,17 @@ def setup_xvfb():
     name, version, expected, url = package
     CACHE.mkdir(parents=True, exist_ok=True)
     archive = CACHE / url.rsplit("/", 1)[1]
-    if not archive.exists():
-        archive.write_bytes(urllib.request.urlopen(url, timeout=45).read())
-    require(sha(archive) == expected, "Xvfb package differs from configured repository's SHA-256")
+    if not archive.exists() or sha(archive) != expected:
+        with urllib.request.urlopen(url, timeout=45) as response:
+            data = response.read()
+        require(hashlib.sha256(data).hexdigest() == expected, "Xvfb package differs from configured repository's SHA-256")
+        with tempfile.NamedTemporaryFile(dir=CACHE, prefix=f".{archive.name}.", delete=False) as download:
+            partial = Path(download.name)
+        try:
+            partial.write_bytes(data)
+            os.replace(partial, archive)
+        finally:
+            partial.unlink(missing_ok=True)
     subprocess.run(["tar", "--zstd", "-xf", str(archive), "-C", str(CACHE), "usr/bin/Xvfb"], check=True)
     save(CACHE / "package.json", {"package": name, "version": version, "sha256": expected, "url": url})
     print(xvfb_path())
@@ -226,44 +234,70 @@ def display(run, evidence):
     session.mkdir(mode=0o700)
     authority = session / "authority"
     authority.touch(mode=0o600)
+    server_authority = session / "server-authority"
+    server_authority.touch(mode=0o600)
     server = None
     record = None
     number = None
+    env = None
+    socket_identity = None
     log = (evidence / "xvfb.log").open("wb")
+
+    def inode(path):
+        try:
+            return path.stat().st_ino
+        except FileNotFoundError:
+            return None
+
     try:
-        number = next(n for n in range(90, 1000)
-            if not Path(f"/tmp/.X{n}-lock").exists() and not Path(f"/tmp/.X11-unix/X{n}").exists())
-        address = f":{number}"
         # The generated cookie stays in the private scratch directory and is never logged.
-        subprocess.run(["xauth", "-f", str(authority), "add", address,
-                        "MIT-MAGIC-COOKIE-1", secrets.token_hex(16)], check=True, capture_output=True)
+        cookie = secrets.token_hex(16)
+        auth = subprocess.run(["xauth", "-f", str(server_authority), "add", ":0",
+                               "MIT-MAGIC-COOKIE-1", cookie], capture_output=True)
+        require(auth.returncode == 0, "Cannot configure private X11 server authentication")
+        build = json.loads((run.directory / "build.json").read_text())
+        read_fd, write_fd = os.pipe()
+        try:
+            args = [build["xvfb"], "-displayfd", str(write_fd), "-screen", "0", "800x600x24", "-nolisten", "tcp",
+                    "-auth", str(server_authority), "-noreset"]
+            server, record = run.spawn(args, stdout=log, stderr=subprocess.STDOUT, pass_fds=(write_fd,))
+            os.close(write_fd)
+            write_fd = None
+            require(select.select([read_fd], [], [], 5)[0], "Xvfb did not allocate a display in five seconds")
+            allocated = os.read(read_fd, 64).decode("ascii").strip()
+            require(allocated.isdecimal(), "Xvfb exited without providing a display number; inspect xvfb.log")
+            number = int(allocated)
+        finally:
+            os.close(read_fd)
+            if write_fd is not None:
+                os.close(write_fd)
+        address = f":{number}"
+        socket_identity = inode(Path(f"/tmp/.X11-unix/X{number}"))
+        auth = subprocess.run(["xauth", "-f", str(authority), "add", address,
+                               "MIT-MAGIC-COOKIE-1", cookie], capture_output=True)
+        require(auth.returncode == 0, "Cannot configure private X11 client authentication")
         env = {**os.environ, "DISPLAY": address, "XAUTHORITY": str(authority), "BENDRTS": "--threads 1",
                "TMPDIR": str(session)}
-        build = json.loads((run.directory / "build.json").read_text())
-        args = [build["xvfb"], address, "-screen", "0", "800x600x24", "-nolisten", "tcp",
-                "-auth", str(authority), "-noreset"]
-        server, record = run.spawn(args, stdout=log, stderr=subprocess.STDOUT)
         save(evidence / "display.json", {"argv": args, "pid": server.pid, "display": address,
+            "socket_inode": socket_identity,
             "stand_in": "Private 800x600x24 Xvfb server, no window manager, generated authentication"})
         deadline = time.monotonic() + 5
         while time.monotonic() < deadline:
             require(server.poll() is None, "Owned Xvfb exited; inspect xvfb.log")
-            lock = Path(f"/tmp/.X{number}-lock")
-            if lock.exists() and lock.read_text().strip() == str(server.pid):
-                probe = subprocess.run([str(run.scratch / "bin/x11"), "doctor"], env=env,
-                    capture_output=True, text=True, timeout=2)
-                if probe.returncode == 0:
-                    state = json.loads(probe.stdout)
-                    require(state == {"width": 800, "height": 600, "depth": 24, "true_color": True, "windows": []},
-                            "Fresh display is not a usable, empty TrueColor X11 instance")
-                    save(evidence / "display-doctor.json", state)
-                    break
+            probe = subprocess.run([str(run.scratch / "bin/x11"), "doctor"], env=env,
+                capture_output=True, text=True, timeout=2)
+            if probe.returncode == 0:
+                state = json.loads(probe.stdout)
+                require(state == {"width": 800, "height": 600, "depth": 24, "true_color": True, "windows": []},
+                        "Fresh display is not a usable, empty TrueColor X11 instance")
+                save(evidence / "display-doctor.json", state)
+                break
             time.sleep(0.03)
         else:
             raise RuntimeError("Owned Xvfb did not become usable in five seconds")
         yield env
     except BaseException:
-        if server is not None and server.poll() is None:
+        if env is not None and server is not None and server.poll() is None:
             probe = subprocess.run([str(run.scratch / "bin/x11"), "doctor"], env=env,
                 capture_output=True, text=True, timeout=2)
             save(evidence / "failure-doctor.json", {"exit_code": probe.returncode,
@@ -277,10 +311,15 @@ def display(run, evidence):
         log.close()
         if session.exists():
             shutil.rmtree(session)
+        lock = Path(f"/tmp/.X{number}-lock") if number is not None else None
+        try:
+            owned_lock_remains = lock is not None and lock.read_text().strip() == str(server.pid)
+        except FileNotFoundError:
+            owned_lock_remains = False
         result = {"server_exited": server is None or server.poll() is not None,
             "private_auth_removed": not session.exists(),
-            "socket_removed": number is None or not Path(f"/tmp/.X11-unix/X{number}").exists(),
-            "lock_removed": number is None or not Path(f"/tmp/.X{number}-lock").exists()}
+            "socket_removed": socket_identity is None or inode(Path(f"/tmp/.X11-unix/X{number}")) != socket_identity,
+            "lock_removed": not owned_lock_remains}
         save(evidence / "display-cleanup.json", result)
         require(all(result.values()), "Private X11 server left a lock, socket, or other owned resource behind")
 
@@ -298,7 +337,8 @@ class Terminal:
         os.close(slave)
         os.set_blocking(self.master, False)
         save(evidence / "command.json", {"argv": [str(arg) for arg in args], "cwd": str(ROOT),
-            "display": env["DISPLAY"], "terminal": "fresh raw PTY; stderr retained separately"})
+            "display": env["DISPLAY"], "BENDRTS": env.get("BENDRTS"),
+            "terminal": "fresh raw PTY; stderr retained separately"})
 
     def pump(self):
         if self.eof:
@@ -376,9 +416,11 @@ def drive(run, feature, entry):
                 note("X11 " + " ".join(str(arg) for arg in args), value)
                 return value
             if feature == "example":
-                args = {"binary": [run.scratch / "bin/example", "+RTS", "--threads", "1"],
+                args = {"binary": [run.scratch / "bin/example"],
                         "bend": ["bend", ROOT / "examples/capture.bend"],
                         "check": [ROOT / "scripts/check.sh"]}[entry]
+                if entry == "binary":
+                    env = {key: value for key, value in env.items() if key != "BENDRTS"}
             else:
                 require(entry == "binary", "The consumer features have one prepared-binary entry point")
                 name = {"pixels": "pixels", "recoverable-failure": "recover", "events": "events"}[feature]
