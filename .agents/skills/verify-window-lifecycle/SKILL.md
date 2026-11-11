@@ -15,7 +15,7 @@ This checks the finite TLA+ model and executes the covered source with controlle
 
 Coverage: `examples/capture.bend`: `main`, `opened`, `capture_frame`, `close_and_report`, `captured`, and `report`. `capture.bend`: `Window.capture` ownership signature.
 
-Last confirmed source commit: `86394a5b7762a7188d32e7c9e8fbb85baa42dbde`.
+Last confirmed source commit: `863b7594b4eab9238a91421afbbd7551e1813e0c`.
 File hashes and the coverage record are in [source-map.json](../../../verification/source-map.json). Exact assumptions, tool requirements, atomicity, and source-test boundaries are in [verification scope](../../../verification/SCOPE.md).
 
 Bounds: One open attempt, one frame, capture Done or Fail, one close. Open failure owns no window. Bend continuations are the transition boundaries.

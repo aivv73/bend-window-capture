@@ -15,7 +15,7 @@ This checks the finite TLA+ model and executes the covered source with controlle
 
 Coverage: `capture.c`: image acquisition, failure cleanup, depth loop, `heap_alloc`, `memset`, pixel copy, `XDestroyImage`, and `Capture` construction. `capture.bend`: array contract. `examples/capture.bend`: reads after close.
 
-Last confirmed source commit: `86394a5b7762a7188d32e7c9e8fbb85baa42dbde`.
+Last confirmed source commit: `863b7594b4eab9238a91421afbbd7551e1813e0c`.
 File hashes and the coverage record are in [source-map.json](../../../verification/source-map.json). Exact assumptions, tool requirements, atomicity, and source-test boundaries are in [verification scope](../../../verification/SCOPE.md).
 
 Bounds: Logical pixel counts 1, 3, 4, and 5 and capacities through 8. Acquisition or later failure and one pixel per copy action. Runtime allocation succeeds. This is not a proof of C RGB arithmetic for every input.

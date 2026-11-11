@@ -8,19 +8,19 @@ def print_pixels(width: U32, height: U32, tl: U32, tr: U32, bl: U32,
     ++ U32.show(tl) ++ " " ++ U32.show(tr) ++ " "
     ++ U32.show(bl) ++ " " ++ U32.show(br))
 
-def read_bottom(width: U32, height: U32, tl: U32, tr: U32,
+def read_bottom(+width: U32, +height: U32, tl: U32, tr: U32,
   sample: Array<U32> & U32) -> IO(Unit):
   (pixels, bl) = sample
-  print_pixels(width, height, tl, tr, bl, Array.get(U32, pixels, 4095))
+  print_pixels(width, height, tl, tr, bl, Array.get(U32, pixels, U32.sub(U32.mul(width, height), 1)))
 
-def read_right(width: U32, height: U32, tl: U32,
+def read_right(+width: U32, +height: U32, tl: U32,
   sample: Array<U32> & U32) -> IO(Unit):
   (pixels, tr) = sample
-  read_bottom(width, height, tl, tr, Array.get(U32, pixels, 4032))
+  read_bottom(width, height, tl, tr, Array.get(U32, pixels, U32.mul(U32.sub(height, 1), width)))
 
-def read_left(width: U32, height: U32, sample: Array<U32> & U32) -> IO(Unit):
+def read_left(+width: U32, height: U32, sample: Array<U32> & U32) -> IO(Unit):
   (pixels, tl) = sample
-  read_right(width, height, tl, Array.get(U32, pixels, 63))
+  read_right(width, height, tl, Array.get(U32, pixels, U32.sub(width, 1)))
 
 def report(capture: C.Capture) -> IO(Unit):
   match capture:
