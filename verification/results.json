@@ -105,6 +105,6 @@
         "source_witness": "compile: checker leaked its temporary build directory"
       }
     ],
-    "sync_commit": "82bd457b7f2a2081d359ce3c2504afa312658d2b"
+    "sync_commit": "30d61efc501028fd433087e474272aa62a48ed80"
   }
 }

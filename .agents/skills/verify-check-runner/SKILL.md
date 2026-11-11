@@ -15,7 +15,7 @@ This checks the finite TLA+ model and executes the covered source with controlle
 
 Coverage: `scripts/check.sh`: proof command, `mktemp`, EXIT trap, compilation, execution, and comparison. `.github/workflows/check.yml`: compiler and dependency context, not GitHub service behavior.
 
-Last confirmed source commit: `82bd457b7f2a2081d359ce3c2504afa312658d2b`.
+Last confirmed source commit: `30d61efc501028fd433087e474272aa62a48ed80`.
 File hashes and the coverage record are in [source-map.json](../../../verification/source-map.json). Exact assumptions, tool requirements, atomicity, and source-test boundaries are in [verification scope](../../../verification/SCOPE.md).
 
 Bounds: One proof, directory allocation, trap registration, compile, run, comparison, and ordinary exit. Excludes interruption between mktemp and trap installation and excludes SIGKILL.
