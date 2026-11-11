@@ -252,8 +252,8 @@ def display(run, evidence):
     try:
         # The generated cookie stays in the private scratch directory and is never logged.
         cookie = secrets.token_hex(16)
-        auth = subprocess.run(["xauth", "-f", str(server_authority), "add", ":0",
-                               "MIT-MAGIC-COOKIE-1", cookie], capture_output=True)
+        auth = subprocess.run(["xauth", "-f", str(server_authority)],
+            input=f"add :0 MIT-MAGIC-COOKIE-1 {cookie}\n", text=True, capture_output=True)
         require(auth.returncode == 0, "Cannot configure private X11 server authentication")
         build = json.loads((run.directory / "build.json").read_text())
         read_fd, write_fd = os.pipe()
@@ -273,8 +273,8 @@ def display(run, evidence):
                 os.close(write_fd)
         address = f":{number}"
         socket_identity = inode(Path(f"/tmp/.X11-unix/X{number}"))
-        auth = subprocess.run(["xauth", "-f", str(authority), "add", address,
-                               "MIT-MAGIC-COOKIE-1", cookie], capture_output=True)
+        auth = subprocess.run(["xauth", "-f", str(authority)],
+            input=f"add {address} MIT-MAGIC-COOKIE-1 {cookie}\n", text=True, capture_output=True)
         require(auth.returncode == 0, "Cannot configure private X11 client authentication")
         env = {**os.environ, "DISPLAY": address, "XAUTHORITY": str(authority), "BENDRTS": "--threads 1",
                "TMPDIR": str(session)}

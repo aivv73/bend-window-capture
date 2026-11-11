@@ -163,10 +163,15 @@ class DisplayAllocationTests(unittest.TestCase):
                     return env["DISPLAY"]
 
             try:
-                with mock.patch.object(control.subprocess, "run", side_effect=synchronized_auth), \
+                with mock.patch.object(control.subprocess, "run", side_effect=synchronized_auth) as commands, \
                      ThreadPoolExecutor(max_workers=2) as workers:
                     displays = list(workers.map(open_display, runs))
                 self.assertEqual(len(set(displays)), 2)
+                auth_calls = [call for call in commands.call_args_list if call.args[0][0] == "xauth"]
+                self.assertEqual(len(auth_calls), 4)
+                for call in auth_calls:
+                    self.assertEqual(len(call.args[0]), 3, "X11 cookies must stay out of process arguments")
+                    self.assertIn("input", call.kwargs)
             finally:
                 for run in runs:
                     control.cleanup(run.directory)
