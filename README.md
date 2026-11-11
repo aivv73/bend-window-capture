@@ -84,11 +84,13 @@ xvfb-run -a ./scripts/check.sh
 `PROOF.bend` proves the structural ownership rule for returning a window beside either result.
 Compiling the integration example also checks the library's types. The proof does not verify the foreign C implementation.
 The integration check verifies actual dimensions, RGB quadrant positions, row order, and pixel access after closing the window.
-Padding, event preservation, and all error paths still require further runtime validation.
+Live checks on private Xvfb displays also verify resized dimensions, zero padding,
+pixels after close, ownership after an `EAGAIN` failure, and a queued close event.
+These checks do not cover every error path, physical displays, window-manager behavior, or other operating systems' ABIs.
 Window effects use shared Xlib state and run on Bend's IO thread.
 
 Six project-local skills model the window lifecycle, capture transaction, X11 error trap,
-pixel ownership, effect registration, and check runner. Run `python3 verification/verify.py all`
+pixel ownership, effect registration, and check runner. Run `python3 -B verification/verify.py all`
 to check their bounded TLA+ models and source behavior. Add `--mutations` to exercise the
 broken variants. See the [verification results and flow diagrams](verification/RESULTS.md)
 for skill links, prerequisites, bounds, and evidence. These checks supplement the Bend
@@ -98,6 +100,12 @@ The [live verification skill](.agents/skills/verify-bend-window-capture/SKILL.md
 and its [feature map](.agents/skills/verify-bend-window-capture/features/README.md)
 drive the native example and public library API on private X11 servers, with
 evidence retained after cleanup.
+
+On pushes and pull requests, CI runs the ownership proof and native smoke check,
+the tooling regressions, all six model/source suites with twelve source mutations,
+and all five live drives. Cleanup runs even after failure. CI retains live evidence
+and contract results in the `capture-verification` artifact for seven days.
+The artifact includes the verifier log even when a failure prevents JSON results.
 
 ## Source and license
 
