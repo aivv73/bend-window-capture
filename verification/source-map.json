@@ -1,8 +1,8 @@
 {
   "window-lifecycle": {
-    "sync_commit": "86394a5b7762a7188d32e7c9e8fbb85baa42dbde",
+    "sync_commit": "863b7594b4eab9238a91421afbbd7551e1813e0c",
     "files": {
-      "examples/capture.bend": "0198e3638ffd55d31f0bdffa0f212390093167b95a82020d335923e6982c8335",
+      "examples/capture.bend": "6cb2873b1b1d2af558a3447b49a73c1f4cff4fe2fa79241672c448d6cff3fb4f",
       "capture.bend": "b693e87fccb83e0384ad7dfac0c734092aee7354fcf7c36f61de0380a461d010"
     }
   },
@@ -21,11 +21,11 @@
     }
   },
   "pixel-ownership": {
-    "sync_commit": "86394a5b7762a7188d32e7c9e8fbb85baa42dbde",
+    "sync_commit": "863b7594b4eab9238a91421afbbd7551e1813e0c",
     "files": {
       "capture.c": "74cba91ebb8a006fbe440971fb533357954d6ccb9a28563cd88bfe9d56b2c050",
       "capture.bend": "b693e87fccb83e0384ad7dfac0c734092aee7354fcf7c36f61de0380a461d010",
-      "examples/capture.bend": "0198e3638ffd55d31f0bdffa0f212390093167b95a82020d335923e6982c8335"
+      "examples/capture.bend": "6cb2873b1b1d2af558a3447b49a73c1f4cff4fe2fa79241672c448d6cff3fb4f"
     }
   },
   "effect-registration": {
