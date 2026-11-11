@@ -107,12 +107,24 @@ class Run:
 
     def spawn(self, args, **kwargs):
         self.private()
-        process = subprocess.Popen(args, start_new_session=True, **kwargs)
         records = self.processes()
-        record = {"pid": process.pid, "start": token(process.pid), "command": [str(arg) for arg in args]}
-        records.append(record)
-        save(self.scratch / "processes.json", records)
-        return process, record
+        process = None
+        try:
+            process = subprocess.Popen(args, start_new_session=True, **kwargs)
+            record = {"pid": process.pid, "start": token(process.pid), "command": [str(arg) for arg in args]}
+            with tempfile.TemporaryDirectory(dir=self.scratch, prefix=".processes-") as pending:
+                path = Path(pending) / "processes.json"
+                save(path, records + [record])
+                os.replace(path, self.scratch / "processes.json")
+            return process, record
+        except BaseException:
+            if process is not None:
+                stop({"pid": process.pid, "start": token(process.pid)})
+                process.wait(timeout=5)
+                for stream in (process.stdin, process.stdout, process.stderr):
+                    if stream is not None:
+                        stream.close()
+            raise
 
     def command(self, args, folder, name, env=None, cwd=None, timeout=45):
         process, record = self.spawn([str(arg) for arg in args], cwd=cwd or ROOT,

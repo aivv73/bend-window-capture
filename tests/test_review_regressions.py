@@ -248,6 +248,46 @@ class EvidenceTests(unittest.TestCase):
         (evidence / "stdout.txt").write_text("original proof")
         return evidence, scratch
 
+    def test_failed_spawn_stops_child_and_preserves_ownership_records(self):
+        for failure in (OSError("ownership write failed"), KeyboardInterrupt("cancelled")):
+            with self.subTest(failure=type(failure).__name__), tempfile.TemporaryDirectory() as directory:
+                evidence, scratch = self.run_fixture(Path(directory))
+                run = control.Run(evidence)
+                ledger = scratch / "processes.json"
+                control.save(ledger, [])
+                before = ledger.read_bytes()
+                children = []
+                popen = subprocess.Popen
+
+                def start(*args, **kwargs):
+                    child = popen(*args, **kwargs)
+                    children.append(child)
+                    self.assertEqual(child.stdout.readline().strip(), b"READY")
+                    return child
+
+                def interrupted_save(path, value):
+                    path.write_text("{")
+                    raise failure
+
+                try:
+                    with mock.patch.object(control.subprocess, "Popen", side_effect=start), \
+                         mock.patch.object(control, "save", side_effect=interrupted_save):
+                        with self.assertRaises(type(failure)):
+                            run.spawn([sys.executable, "-c", "import time; print('READY', flush=True); time.sleep(30)"],
+                                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                    self.assertEqual(len(children), 1)
+                    self.assertIsNotNone(children[0].poll(), "failed startup left a child running")
+                    self.assertFalse(control.group_running(children[0].pid))
+                    self.assertEqual(ledger.read_bytes(), before)
+                    self.assertEqual(set(scratch.iterdir()), {scratch / ".owner", scratch / "temporary.txt", ledger})
+                finally:
+                    for child in children:
+                        if child.poll() is None:
+                            os.killpg(child.pid, 9)
+                        child.wait(timeout=5)
+                        child.stdout.close()
+                        child.stderr.close()
+
     def test_cleanup_detects_modified_or_deleted_evidence(self):
         for mutation in ("modify", "delete"):
             with self.subTest(mutation=mutation), tempfile.TemporaryDirectory() as directory:
