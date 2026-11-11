@@ -105,6 +105,7 @@ On pushes and pull requests, CI runs the ownership proof and native smoke check,
 the tooling regressions, all six model/source suites with twelve source mutations,
 and all five live drives. Cleanup runs even after failure. CI retains live evidence
 and contract results in the `capture-verification` artifact for seven days.
+The artifact includes the verifier log even when a failure prevents JSON results.
 
 ## Source and license
 

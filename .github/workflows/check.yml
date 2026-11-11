@@ -30,7 +30,9 @@ jobs:
       - name: Check capture contracts and mutations
         id: contracts
         shell: bash
-        run: python3 -B verification/verify.py all --mutations --out "$RUNNER_TEMP/capture-contracts.json"
+        run: |
+          set -euo pipefail
+          python3 -B verification/verify.py all --mutations --out "$RUNNER_TEMP/capture-contracts.json" 2>&1 | tee "$RUNNER_TEMP/capture-contracts.log"
       - name: Check live capture contracts
         id: live_capture
         if: ${{ !cancelled() }}
@@ -63,6 +65,7 @@ jobs:
           path: |
             ${{ runner.temp }}/capture-live
             ${{ runner.temp }}/capture-contracts.json
+            ${{ runner.temp }}/capture-contracts.log
           retention-days: 7
           if-no-files-found: warn
           include-hidden-files: false

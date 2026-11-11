@@ -10,6 +10,7 @@ It also runs five live drives on private Xvfb displays: the native example, the 
 resized pixels and padding after close, recoverable failure ownership, and queued close events.
 Cleanup runs unconditionally after a live session is created. The `capture-verification` artifact
 retains live evidence and contract results for seven days, including after failure.
+Contract JSON is written only on success; the verifier log preserves output and errors on failure.
 Live coverage does not establish every error path, physical display or window-manager behavior, or other operating systems' ABIs.
 
 The runner requires Python 3, Node, Clang, X11 development headers, Bend 2.0.40, and Java 11 or newer.
