@@ -8,7 +8,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install native dependencies
-        run: sudo apt-get update && sudo apt-get install -y clang libx11-dev xvfb xauth
+        run: sudo apt-get update && sudo apt-get install -y clang libx11-dev xvfb xauth nodejs openjdk-21-jre-headless python3-yaml x11-xkb-utils xkb-data
       - name: Install Bend
         env:
           GH_TOKEN: ${{ github.token }}
@@ -27,3 +27,42 @@ jobs:
         run: xvfb-run -a ./scripts/check.sh
       - name: Check verification regressions
         run: python3 -B -m unittest discover -s tests -v
+      - name: Check capture contracts and mutations
+        id: contracts
+        shell: bash
+        run: python3 -B verification/verify.py all --mutations --out "$RUNNER_TEMP/capture-contracts.json"
+      - name: Check live capture contracts
+        id: live_capture
+        if: ${{ !cancelled() }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          bwc_control="$PWD/.agents/skills/verify-bend-window-capture/scripts/control.py"
+          bwc_run_dir="$RUNNER_TEMP/capture-live"
+          python3 -B "$bwc_control" launch --run-dir "$bwc_run_dir"
+          python3 -B "$bwc_control" doctor --run-dir "$bwc_run_dir"
+          python3 -B "$bwc_control" drive --run-dir "$bwc_run_dir" --feature example --entry binary
+          python3 -B "$bwc_control" drive --run-dir "$bwc_run_dir" --feature example --entry check
+          for bwc_feature in pixels recoverable-failure events; do
+            python3 -B "$bwc_control" drive --run-dir "$bwc_run_dir" --feature "$bwc_feature"
+          done
+      - name: Clean up live capture resources
+        id: cleanup_capture
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -f "$RUNNER_TEMP/capture-live/session.json" ]]; then
+            python3 -B .agents/skills/verify-bend-window-capture/scripts/control.py cleanup --run-dir "$RUNNER_TEMP/capture-live"
+          fi
+      - name: Upload capture verification evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: capture-verification
+          path: |
+            ${{ runner.temp }}/capture-live
+            ${{ runner.temp }}/capture-contracts.json
+          retention-days: 7
+          if-no-files-found: warn
+          include-hidden-files: false

@@ -1,9 +1,16 @@
 # Verification scope
 
 These models check the protocols in the existing code. They do not change product behavior.
-Run `python3 verification/verify.py all` from the repository root.
+Run `python3 -B verification/verify.py all` from the repository root.
 Add `--mutations` to check the broken variants as well.
-Run `python3 -B -m unittest discover -s tests -v` for download, shutdown, evidence-retention, and sync-baseline regressions. CI runs those checks alongside the live X11 integration example.
+Run `python3 -B -m unittest discover -s tests -v` for download, shutdown, evidence-retention, and sync-baseline regressions.
+On pushes and pull requests, CI runs those regressions, the Bend ownership proof,
+the native smoke check, and all six model/source suites with `--mutations` (twelve source mutations).
+It also runs five live drives on private Xvfb displays: the native example, the check-script entry,
+resized pixels and padding after close, recoverable failure ownership, and queued close events.
+Cleanup runs unconditionally after a live session is created. The `capture-verification` artifact
+retains live evidence and contract results for seven days, including after failure.
+Live coverage does not establish every error path, physical display or window-manager behavior, or other operating systems' ABIs.
 
 The runner requires Python 3, Node, Clang, X11 development headers, Bend 2.0.40, and Java 11 or newer.
 It downloads TLC 1.7.4 into the user cache and verifies its pinned SHA-256.
