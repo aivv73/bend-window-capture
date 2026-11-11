@@ -8,7 +8,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install native dependencies
-        run: sudo apt-get update && sudo apt-get install -y clang libx11-dev xvfb xauth
+        run: |
+          # Select Ubuntu's canonical archive after repeated Azure mirror DNS failures.
+          printf '%s\n' 'https://archive.ubuntu.com/ubuntu/' | sudo tee /etc/apt/apt-mirrors.txt >/dev/null
+          sudo apt-get update
+          sudo apt-get install -y clang libx11-dev xvfb xauth
       - name: Install Bend
         env:
           GH_TOKEN: ${{ github.token }}
