@@ -1,0 +1,68 @@
+---
+title: "Capture success and failures that return your window"
+---
+stateDiagram-v2
+  state "Legend" as legend {
+    lg0: finished
+    lg1: in progress
+    lg2: failed
+    lg3: Breaks OnlyValidatedCaptureSucceeds
+    lg4: Path to the OnlyValidatedCaptureSucceeds bug
+  }
+  class lg0 teal
+  class lg1 blue
+  class lg2 orange
+  class lg3 breaks
+  class lg4 bugPath
+  s0: Capture requested
+  s1: Error and window returned
+  s2: Finishing drawing
+  s3: Checking the window
+  s4: Capture rejected
+  s5: Retryable error and window returned
+  s6: Reading pixels
+  s7: Checking for changes
+  s8: Snapshot validated
+  s9: Changed snapshot accepted
+  s10: Snapshot and window returned
+  s11: Invalid snapshot returned
+  [*] --> s0
+  s0 --> s1: backend unavailable
+  s0 --> s2: native backend available
+  s2 --> s3: drawing is synchronized
+  s2 --> s4: pending X11 request fails
+  s3 --> s4: window fails initial checks
+  s3 --> s6: window passes initial checks
+  s4 --> s5: return EAGAIN and window
+  s4 --> s1: return error and window
+  s6 --> s4: readback or color format fails
+  s6 --> s7: pixels are available
+  s7 --> s8: client still matches
+  s7 --> s9: client changes during readback
+  s8 --> s10: return snapshot and window
+  s8 --> s5: return EAGAIN and window
+  s8 --> s1: return error and window
+  s9 --> s11: return snapshot and window
+  s9 --> s5: return EAGAIN and window
+  s9 --> s1: return error and window
+  classDef breaks fill:#ffecee,stroke:#e72e3b,stroke-width:2.5px,color:#cd2834
+  class s0 blue
+  class s0 bugPath
+  class s1 orange
+  class s2 blue
+  class s2 bugPath
+  class s3 blue
+  class s3 bugPath
+  class s4 blue
+  class s5 orange
+  class s6 blue
+  class s6 bugPath
+  class s7 blue
+  class s7 bugPath
+  class s8 blue
+  class s9 blue
+  class s9 bugPath
+  class s10 teal
+  class s11 teal
+  class s11 breaks
+  class s11 bugPath

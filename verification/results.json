@@ -1,0 +1,110 @@
+{
+  "window-lifecycle": {
+    "model": "WindowLifecycle",
+    "states": 10,
+    "source_cases": 3,
+    "mutations": [
+      {
+        "rule": "ReportAfterClose",
+        "source_mutation": "window-lifecycle",
+        "source_witness": "success: exit 91, expected 0: VERIFY:OPEN\nVERIFY: report follows Window.close\n"
+      }
+    ],
+    "sync_commit": "86394a5b7762a7188d32e7c9e8fbb85baa42dbde"
+  },
+  "capture-transaction": {
+    "model": "CaptureTransaction",
+    "states": 49,
+    "source_cases": 25,
+    "mutations": [
+      {
+        "rule": "OnlyValidatedCaptureSucceeds",
+        "source_mutation": "capture-transaction",
+        "source_witness": "changed-width: exit 91, expected 11: VERIFY:OPEN\nVERIFY: unsuitable readback returns Fail\n"
+      }
+    ],
+    "sync_commit": "86394a5b7762a7188d32e7c9e8fbb85baa42dbde"
+  },
+  "x11-error-trap": {
+    "model": "X11ErrorTrap",
+    "states": 54,
+    "source_cases": 25,
+    "mutations": [
+      {
+        "rule": "RestoredHandler",
+        "source_mutation": "x11-error-trap",
+        "source_witness": "success: exit 91, expected 0: VERIFY:OPEN\nVERIFY: previous X11 error handler is restored\n"
+      },
+      {
+        "rule": "FirstErrorWins",
+        "source_mutation": "x11-first-error",
+        "source_witness": "two-errors: exit 91, expected 22: VERIFY:OPEN\nVERIFY: error mapping and first-error precedence\n"
+      },
+      {
+        "rule": "Source behavioral oracle (not a TLA+ proof)",
+        "source_mutation": "x11-drain-order",
+        "source_witness": "success: exit 91, expected 0: VERIFY:OPEN\nVERIFY: all capture requests are drained before handler restoration\n"
+      }
+    ],
+    "sync_commit": "86394a5b7762a7188d32e7c9e8fbb85baa42dbde"
+  },
+  "pixel-ownership": {
+    "model": "PixelOwnership",
+    "states": 59,
+    "source_cases": 30,
+    "mutations": [
+      {
+        "rule": "PaddingZeroAndOwned",
+        "source_mutation": "pixel-ownership",
+        "source_witness": "small: exit 91, expected 0: VERIFY:OPEN\nVERIFY: array padding is zero\n"
+      },
+      {
+        "rule": "AllImagesReleased",
+        "source_mutation": "pixel-release",
+        "source_witness": "mask-zero: exit 91, expected 95: VERIFY:OPEN\nVERIFY: temporary XImage is released before returning\n"
+      },
+      {
+        "rule": "Source behavioral oracle (not a TLA+ proof)",
+        "source_mutation": "pixel-row-order",
+        "source_witness": "success: exit 91, expected 0: VERIFY:OPEN\nVERIFY: RGB quadrant positions and row order\n"
+      },
+      {
+        "rule": "Source behavioral oracle (not a TLA+ proof)",
+        "source_mutation": "pixel-channel",
+        "source_witness": "success: exit 91, expected 0: VERIFY:OPEN\nVERIFY: RGB quadrant positions and row order\n"
+      }
+    ],
+    "sync_commit": "86394a5b7762a7188d32e7c9e8fbb85baa42dbde"
+  },
+  "effect-registration": {
+    "model": "EffectRegistration",
+    "states": 9,
+    "source_cases": 5,
+    "mutations": [
+      {
+        "rule": "ReadyHasHandler",
+        "source_mutation": "effect-registration",
+        "source_witness": "JavaScript effect lifecycle failed: node:internal/assert/utils:146\n  throw error;\n  ^\n\nAssertionError [ERR_ASSERTION]: module evaluation registers one capture handler\n\n0 !== 1\n\n    at [eval]:9:10\n    at runScriptInThisContext (node:internal/vm:219:10)\n    at node:internal/process/execution:485:12\n    at [eval]-wrapper:6:24\n    at runScriptInContext (node:internal/process/execution:483:60)\n    at evalFunction (node:internal/process/execution:317:30)\n    at evalTypeScript (node:internal/process/execution:329:3)\n    at node:internal/main/eval_string:71:3 {\n  generatedMessage: false,\n  code: 'ERR_ASSERTION',\n  actual: 0,\n  expected: 1,\n  operator: 'strictEqual',\n  diff: 'simple'\n}\n\nNode.js v26.13.0\n"
+      },
+      {
+        "rule": "UnsupportedReturnsENOTSUP",
+        "source_mutation": "native-unsupported",
+        "source_witness": "unsupported: exit 91, expected 95: VERIFY:OPEN\nVERIFY: unsupported native backend returns ENOTSUP\n"
+      }
+    ],
+    "sync_commit": "86394a5b7762a7188d32e7c9e8fbb85baa42dbde"
+  },
+  "check-runner": {
+    "model": "CheckRunner",
+    "states": 12,
+    "source_cases": 5,
+    "mutations": [
+      {
+        "rule": "ExitCleansBuild",
+        "source_mutation": "check-runner",
+        "source_witness": "compile: checker leaked its temporary build directory"
+      }
+    ],
+    "sync_commit": "82bd457b7f2a2081d359ce3c2504afa312658d2b"
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "window-lifecycle": {
+    "sync_commit": "86394a5b7762a7188d32e7c9e8fbb85baa42dbde",
+    "files": {
+      "examples/capture.bend": "0198e3638ffd55d31f0bdffa0f212390093167b95a82020d335923e6982c8335",
+      "capture.bend": "b693e87fccb83e0384ad7dfac0c734092aee7354fcf7c36f61de0380a461d010"
+    }
+  },
+  "capture-transaction": {
+    "sync_commit": "86394a5b7762a7188d32e7c9e8fbb85baa42dbde",
+    "files": {
+      "capture.c": "74cba91ebb8a006fbe440971fb533357954d6ccb9a28563cd88bfe9d56b2c050",
+      "capture.bend": "b693e87fccb83e0384ad7dfac0c734092aee7354fcf7c36f61de0380a461d010"
+    }
+  },
+  "x11-error-trap": {
+    "sync_commit": "86394a5b7762a7188d32e7c9e8fbb85baa42dbde",
+    "files": {
+      "capture.c": "74cba91ebb8a006fbe440971fb533357954d6ccb9a28563cd88bfe9d56b2c050",
+      "LAWS.bend": "4163be7e093aa99f04eb777c6fe358f84f32d3bc08ed544beb364f4729cf7255"
+    }
+  },
+  "pixel-ownership": {
+    "sync_commit": "86394a5b7762a7188d32e7c9e8fbb85baa42dbde",
+    "files": {
+      "capture.c": "74cba91ebb8a006fbe440971fb533357954d6ccb9a28563cd88bfe9d56b2c050",
+      "capture.bend": "b693e87fccb83e0384ad7dfac0c734092aee7354fcf7c36f61de0380a461d010",
+      "examples/capture.bend": "0198e3638ffd55d31f0bdffa0f212390093167b95a82020d335923e6982c8335"
+    }
+  },
+  "effect-registration": {
+    "sync_commit": "86394a5b7762a7188d32e7c9e8fbb85baa42dbde",
+    "files": {
+      "capture.c": "74cba91ebb8a006fbe440971fb533357954d6ccb9a28563cd88bfe9d56b2c050",
+      "capture.js": "af01067a29d8c51642fa75a7a7b247407177861f2673477666de3fc7ab192a95",
+      "capture.bend": "b693e87fccb83e0384ad7dfac0c734092aee7354fcf7c36f61de0380a461d010"
+    }
+  },
+  "check-runner": {
+    "sync_commit": "82bd457b7f2a2081d359ce3c2504afa312658d2b",
+    "files": {
+      "scripts/check.sh": "1ddc6e727419fcc38acfb5e40ae3b032586f4ada53d096b5ce28f821067cd2a5",
+      ".github/workflows/check.yml": "aaa69083e70f6d6c1f98d3182cf6282dfe0aa8bd1594d997d9b1e40f13f1bfc2"
+    }
+  }
+}

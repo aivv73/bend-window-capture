@@ -1,0 +1,42 @@
+---
+title: "Capture a window, close it, then read its pixels"
+---
+stateDiagram-v2
+  state "Legend" as legend {
+    lg0: finished
+    lg1: in progress
+    lg2: failed
+  }
+  class lg0 teal
+  class lg1 blue
+  class lg2 orange
+  s0: Opening a window
+  s1: Window could not open
+  s2: Window open
+  s3: Image drawn
+  s4: Snapshot ready
+  s5: Capture failed
+  s6: Window closed, snapshot ready
+  s7: Window closed, capture failed
+  s8: Pixels printed
+  s9: Error reported
+  [*] --> s0
+  s0 --> s1: opening fails
+  s0 --> s2: window opens
+  s2 --> s3: draw the image
+  s3 --> s4: capture succeeds
+  s3 --> s5: capture fails
+  s4 --> s6: close the returned window
+  s5 --> s7: close the returned window
+  s6 --> s8: print captured pixels
+  s7 --> s9: report the capture error
+  class s0 blue
+  class s1 orange
+  class s2 blue
+  class s3 blue
+  class s4 blue
+  class s5 blue
+  class s6 blue
+  class s7 blue
+  class s8 teal
+  class s9 orange

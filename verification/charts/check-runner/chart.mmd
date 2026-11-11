@@ -1,0 +1,35 @@
+---
+title: "Clean up temporary files after every ordinary check exit"
+---
+stateDiagram-v2
+  state "Legend" as legend {
+    lg0: in progress
+  }
+  class lg0 blue
+  s0: Checking the Bend proof
+  s1: Script exiting
+  s2: Creating a build directory
+  s3: Build directory removed
+  s4: Build directory exists
+  s5: Cleanup armed
+  s6: Example compiled
+  s7: Example executed
+  [*] --> s0
+  s0 --> s1: proof fails
+  s0 --> s2: proof passes
+  s1 --> s3: run exit cleanup
+  s2 --> s1: directory allocation fails
+  s2 --> s4: create temporary directory
+  s4 --> s5: register exit cleanup
+  s5 --> s1: a check fails
+  s5 --> s6: compile example
+  s6 --> s1: a check fails
+  s6 --> s7: execute example
+  s7 --> s1: a check fails or output matches
+  class s0 blue
+  class s1 blue
+  class s2 blue
+  class s4 blue
+  class s5 blue
+  class s6 blue
+  class s7 blue

@@ -1,0 +1,45 @@
+---
+title: "Copy pixels into storage that survives window closure"
+---
+stateDiagram-v2
+  state "Legend" as legend {
+    lg0: finished
+    lg1: in progress
+    lg2: failed
+    lg3: Breaks AllImagesReleased
+    lg4: Path to the AllImagesReleased bug
+  }
+  class lg0 teal
+  class lg1 blue
+  class lg2 orange
+  class lg3 breaks
+  class lg4 bugPath
+  s0: No image acquired
+  s1: Capture failed, image released
+  s2: Temporary image owned
+  s3: Pixel array allocated
+  s4: Capture failed, image leaked
+  s5: Copying client pixels
+  s6: Temporary image released
+  s7: Independent capture returned
+  [*] --> s0
+  s0 --> s1: acquisition fails
+  s0 --> s2: acquire client image
+  s2 --> s3: allocate pixel array
+  s2 --> s4: validation fails without image cleanup
+  s3 --> s5: clear pixel storage
+  s5 --> s6: release client image
+  s6 --> s7: return independent capture
+  classDef breaks fill:#ffecee,stroke:#e72e3b,stroke-width:2.5px,color:#cd2834
+  class s0 blue
+  class s0 bugPath
+  class s1 orange
+  class s2 blue
+  class s2 bugPath
+  class s3 blue
+  class s4 orange
+  class s4 breaks
+  class s4 bugPath
+  class s5 blue
+  class s6 blue
+  class s7 teal
