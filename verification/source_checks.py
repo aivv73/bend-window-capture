@@ -191,9 +191,17 @@ Term window_capture_run(Env e, Term* f, IoWork* work) {
                 f"{case}: exit {result.returncode}, expected {expected}: {result.stdout}{result.stderr}")
         require(case == "open-fail" or "VERIFY:CLOSE" in result.stderr,
                 f"{case}: capture outcome was reported without closing the window")
-        if expected == 0 and case not in {"small", "grid"}:
-            require(result.stdout.strip() == "64x64 16711680 65280 255 16777215",
-                    f"{case}: example prints incorrect dimensions or corner pixels: {result.stdout}")
+        if expected == 0:
+            expected_line = {
+                ("small", 1): "1x1 1 1 1 1",
+                ("small", 3): "3x1 1 3 1 3",
+                ("small", 4): "4x1 1 4 1 4",
+                ("small", 5): "5x1 1 5 1 5",
+                ("grid", 3): "3x2 1 3 4 6",
+            }.get((case, width), "64x64 16711680 65280 255 16777215")
+            require(result.stdout.strip() == expected_line,
+                    f"{case} width {width}: example corner report expected {expected_line!r}, "
+                    f"actual stdout {result.stdout!r}")
     return len(samples)
 
 
