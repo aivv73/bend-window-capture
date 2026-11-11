@@ -16,6 +16,7 @@ import struct
 import subprocess
 import sys
 import tempfile
+import threading
 import time
 import tty
 import urllib.request
@@ -28,6 +29,7 @@ CACHE = Path(os.environ.get("XDG_CACHE_HOME", Path.home() / ".cache")) / "bend-w
 EXPECTED = "64x64 16711680 65280 255 16777215"
 TITLE = "BWC live probe"
 FEATURES = ("example", "pixels", "recoverable-failure", "events")
+_startup = threading.local()
 
 
 def require(condition, message):
@@ -110,7 +112,15 @@ class Run:
         records = self.processes()
         process = None
         try:
-            process = subprocess.Popen(args, start_new_session=True, **kwargs)
+            # Defer CLI cancellation until Popen returns a handle we can clean up.
+            _startup.interrupted = False
+            _startup.active = True
+            try:
+                process = subprocess.Popen(args, start_new_session=True, **kwargs)
+            finally:
+                _startup.active = False
+            if _startup.interrupted:
+                raise KeyboardInterrupt("Verification interrupted")
             record = {"pid": process.pid, "start": token(process.pid), "command": [str(arg) for arg in args]}
             with tempfile.TemporaryDirectory(dir=self.scratch, prefix=".processes-") as pending:
                 path = Path(pending) / "processes.json"
@@ -557,9 +567,15 @@ def main():
         cleanup(args.run_dir)
 
 
-if __name__ == "__main__":
-    def interrupted(signum, frame):
+def interrupted(signum, frame):
+    if getattr(_startup, "active", False):
+        _startup.interrupted = True
+    else:
         raise KeyboardInterrupt("Verification interrupted")
+
+
+if __name__ == "__main__":
+    signal.signal(signal.SIGINT, interrupted)
     signal.signal(signal.SIGTERM, interrupted)
     try:
         main()

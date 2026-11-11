@@ -86,7 +86,7 @@ The verified environment is a headless Xvfb server without a window manager. The
 
 ## Cleanup
 
-Every drive stops its own consumer and Xvfb server in `finally` and removes that drive's authentication and scratch state. Process startup publishes ownership records atomically. If recording fails or is interrupted, startup stops the new process group and reaps the child before propagating the error; earlier records remain intact. Shutdown gives the process group up to two seconds to exit before escalation. An owned X11 lock or socket left behind makes the drive fail and is recorded in `display-cleanup.json`. At the end of the run, including after failures, execute:
+Every drive stops its own consumer and Xvfb server in `finally` and removes that drive's authentication and scratch state. Process startup publishes ownership records atomically. SIGINT and SIGTERM cancellation waits until `Popen` returns a child handle, then stops the child before reporting the interrupt. If recording fails or is interrupted, startup stops the new process group and reaps the child before propagating the error; earlier records remain intact. Shutdown gives the process group up to two seconds to exit before escalation. An owned X11 lock or socket left behind makes the drive fail and is recorded in `display-cleanup.json`. At the end of the run, including after failures, execute:
 
 ```sh
 "$bwc_control" cleanup --run-dir "$bwc_run_dir"

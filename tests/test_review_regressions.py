@@ -6,6 +6,7 @@ import json
 import os
 from pathlib import Path
 import shutil
+import signal
 import subprocess
 import sys
 import tempfile
@@ -247,6 +248,39 @@ class EvidenceTests(unittest.TestCase):
         control.save(evidence / "session.json", {"scratch": str(scratch), "owner": "test-owner"})
         (evidence / "stdout.txt").write_text("original proof")
         return evidence, scratch
+
+    def test_cancellation_inside_popen_stops_the_child(self):
+        for signum in (signal.SIGTERM, signal.SIGINT):
+            with self.subTest(signal=signum.name), tempfile.TemporaryDirectory() as directory:
+                evidence, scratch = self.run_fixture(Path(directory))
+                run = control.Run(evidence)
+                children = []
+                popen = subprocess.Popen
+
+                def start(*args, **kwargs):
+                    child = popen(*args, **kwargs)
+                    children.append(child)
+                    self.assertEqual(child.stdout.readline().strip(), b"READY")
+                    os.kill(os.getpid(), signum)
+                    return child
+
+                previous_handler = signal.signal(signum, control.interrupted)
+                try:
+                    with mock.patch.object(control.subprocess, "Popen", side_effect=start):
+                        with self.assertRaises(KeyboardInterrupt):
+                            run.spawn([sys.executable, "-c", "import time; print('READY', flush=True); time.sleep(30)"],
+                                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                    self.assertEqual(len(children), 1)
+                    self.assertIsNotNone(children[0].poll(), "cancellation inside Popen left a child running")
+                    self.assertFalse(control.group_running(children[0].pid))
+                finally:
+                    signal.signal(signum, previous_handler)
+                    for child in children:
+                        if child.poll() is None:
+                            os.killpg(child.pid, 9)
+                        child.wait(timeout=5)
+                        child.stdout.close()
+                        child.stderr.close()
 
     def test_failed_spawn_stops_child_and_preserves_ownership_records(self):
         for failure in (OSError("ownership write failed"), KeyboardInterrupt("cancelled")):
